@@ -7,9 +7,11 @@ import {
   DeleteDateColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
 } from 'typeorm';
 
 import { Role } from './role.entity';
+import { School } from '../../school/entities/school.entity';
 
 @Entity()
 export class User {
@@ -37,9 +39,14 @@ export class User {
   @Column('bool', { default: true })
   isActive: boolean;
 
-  @ManyToMany(() => Role, (role) => role.id, { eager: true })
+  @ManyToMany(() => Role, (role) => role.id, { eager: true, nullable: false })
   @JoinTable()
   roles: Role[];
+
+  @ManyToOne(() => School, (school) => school.users, {
+    nullable: false,
+  })
+  school: School;
 
   @DeleteDateColumn()
   deletedAt: Date;

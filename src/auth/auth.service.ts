@@ -7,6 +7,7 @@ import { User } from './entities/user.entity';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload';
+import { CreateAccountDto } from './dto/create-account.dto';
 
 @Injectable()
 export class AuthService {
@@ -50,5 +51,14 @@ export class AuthService {
   private getJwt(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
+  }
+
+  /*
+  TODO: COMPROBAR QUE EL USERNAME SEA UNICO
+  - CREAR SCHOOL
+  - CREAR USER CON ROLE ADMIN
+  */
+  createAccount(createAccountDto: CreateAccountDto) {
+    return createAccountDto;
   }
 }

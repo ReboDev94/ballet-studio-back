@@ -1,4 +1,4 @@
-interface Role {
+interface SeedRole {
   slug: string;
   name: string;
 }
@@ -13,12 +13,32 @@ interface SeedUser {
   isActive: boolean;
 }
 
+interface SeedSchool {
+  name: string;
+  description: string;
+  phone: string | null;
+  address: string;
+  certifications: string[];
+  directorName: string;
+  logo: string | null;
+}
+
 interface SeedData {
-  roles: Role[];
+  school: SeedSchool;
+  roles: SeedRole[];
   users: SeedUser[];
 }
 
 export const initialData: SeedData = {
+  school: {
+    name: 'Ballet Studio',
+    description: 'Escuela de ballet',
+    phone: null,
+    address: 'Av Gobernadores #24',
+    certifications: [],
+    directorName: 'Dalia Nava',
+    logo: null,
+  },
   roles: [
     {
       slug: 'admin',

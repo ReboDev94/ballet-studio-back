@@ -13,8 +13,8 @@ import { Role } from './role.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
 
   @Column('text')
   name: string;
@@ -37,7 +37,7 @@ export class User {
   @Column('bool', { default: true })
   isActive: boolean;
 
-  @ManyToMany(() => Role)
+  @ManyToMany(() => Role, (role) => role.id, { eager: true })
   @JoinTable()
   roles: Role[];
 

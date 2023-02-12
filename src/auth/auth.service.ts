@@ -18,13 +18,12 @@ export class AuthService {
   ) {}
 
   async login(loginUserDto: LoginUserDto) {
-    const { userName, password } = loginUserDto;
+    const { email, password } = loginUserDto;
 
     const user = await this.userRepository.findOne({
-      where: { userName },
+      where: { email },
       select: {
         id: true,
-        userName: true,
         password: true,
         name: true,
         phone: true,
@@ -54,7 +53,7 @@ export class AuthService {
   }
 
   /*
-  TODO: COMPROBAR QUE EL USERNAME SEA UNICO
+  TODO: COMPROBAR QUE EL email SEA UNICO
   - CREAR SCHOOL
   - CREAR USER CON ROLE ADMIN
   */

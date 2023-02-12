@@ -4,11 +4,10 @@ interface SeedRole {
 }
 
 interface SeedUser {
-  userName: string;
+  email: string;
   name: string;
   password: string;
   phone?: string;
-  email?: string;
   isOwner: boolean;
   isActive: boolean;
 }
@@ -55,21 +54,21 @@ export const initialData: SeedData = {
   ],
   users: [
     {
-      userName: 'admin1',
+      email: 'admin1@gmail.com',
       name: 'Dalia Nava',
       password: 'HolaMundo1234#',
       isOwner: true,
       isActive: true,
     },
     {
-      userName: 'teacher1',
+      email: 'teacher1@gmail.com',
       name: 'Yare Araujo',
       password: 'HolaMundo1234#',
       isOwner: false,
       isActive: true,
     },
     {
-      userName: 'receptionist1',
+      email: 'receptionist1@gmail.com',
       name: 'Beto',
       password: 'HolaMundo1234#',
       isOwner: false,

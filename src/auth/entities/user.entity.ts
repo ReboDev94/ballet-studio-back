@@ -22,16 +22,13 @@ export class User {
   name: string;
 
   @Column('text', { unique: true })
-  userName: string;
+  email: string;
 
   @Column('text', { select: false })
   password: string;
 
   @Column('text', { nullable: true })
   phone: string;
-
-  @Column('text', { nullable: true })
-  email: string;
 
   @Column('bool', { default: false })
   isOwner: boolean;

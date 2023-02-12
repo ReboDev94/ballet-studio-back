@@ -1,5 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 
@@ -8,12 +14,23 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload';
 import { CreateAccountDto } from './dto/create-account.dto';
+import { School } from '../school/entities/school.entity';
+import { Role } from './entities/role.entity';
+import { ValidRoles } from './interfaces/valid-roles';
 
 @Injectable()
 export class AuthService {
+  private readonly DEFAULT_ROLE = ValidRoles.admin;
+  private readonly logger = new Logger('AuthService');
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(School)
+    private readonly schoolRepository: Repository<School>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
+    private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -52,12 +69,53 @@ export class AuthService {
     return token;
   }
 
-  /*
-  TODO: COMPROBAR QUE EL email SEA UNICO
-  - CREAR SCHOOL
-  - CREAR USER CON ROLE ADMIN
-  */
-  register(createAccountDto: CreateAccountDto) {
-    return createAccountDto;
+  async register(createAccountDto: CreateAccountDto) {
+    const { email, password, name, nameSchool } = createAccountDto;
+
+    const exitsEmail = await this.userRepository.findOneBy({ email });
+    if (exitsEmail) throw new BadRequestException('email alredy exits');
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const role = await this.roleRepository.findOneBy({
+        slug: this.DEFAULT_ROLE,
+      });
+
+      const school = this.schoolRepository.create({
+        name: nameSchool,
+        directorName: name,
+      });
+
+      const user = this.userRepository.create({
+        name,
+        email,
+        password: bcrypt.hashSync(password, 10),
+        isOwner: true,
+        roles: [role],
+      });
+
+      const dbSchool = await queryRunner.manager.save(school);
+      user.school = dbSchool;
+      await queryRunner.manager.save(user);
+      await queryRunner.commitTransaction();
+      return {
+        success: true,
+        message: 'User has been registered',
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.handleDBException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  private handleDBException(error: any) {
+    // if (error.code == '23505') throw new BadRequestException(error.detail);
+    this.logger.error(error);
+    throw new InternalServerErrorException('help');
   }
 }

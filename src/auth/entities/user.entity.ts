@@ -8,10 +8,14 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  BeforeInsert,
+  BeforeUpdate,
+  AfterLoad,
 } from 'typeorm';
 
 import { Role } from './role.entity';
 import { School } from '../../school/entities/school.entity';
+import { ucwords } from 'src/common/utils';
 
 @Entity()
 export class User {
@@ -60,4 +64,20 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updatedAt: Date;
+
+  @BeforeInsert()
+  checkFieldBeforeInsert() {
+    this.email = this.email.toLowerCase().trim();
+    this.name = this.name.toLowerCase().trim();
+  }
+
+  @BeforeUpdate()
+  checkFieldBeforeUpdate() {
+    this.checkFieldBeforeInsert();
+  }
+
+  @AfterLoad()
+  checkFieldAfterLoad() {
+    this.name = ucwords(this.name);
+  }
 }

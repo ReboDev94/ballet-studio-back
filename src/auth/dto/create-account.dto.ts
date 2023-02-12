@@ -12,6 +12,10 @@ export class CreateAccountDto {
   email: string;
 
   @IsString()
+  @MinLength(1)
+  name: string;
+
+  @IsString()
   @MinLength(6)
   @MaxLength(50)
   @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {

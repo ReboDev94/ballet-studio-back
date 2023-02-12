@@ -12,8 +12,8 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
-  @Post('create-account')
-  createAccount(@Body() createAccountDto: CreateAccountDto) {
-    return this.authService.createAccount(createAccountDto);
+  @Post('register')
+  register(@Body() createAccountDto: CreateAccountDto) {
+    return this.authService.register(createAccountDto);
   }
 }

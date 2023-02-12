@@ -1,5 +1,14 @@
 import { User } from 'src/auth/entities';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { ucwords } from 'src/common/utils';
+import {
+  AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class School {
@@ -32,4 +41,21 @@ export class School {
 
   @OneToMany(() => User, (user) => user.school)
   users: User[];
+
+  @BeforeInsert()
+  checkFieldBeforeInsert() {
+    this.name = this.name.toLowerCase().trim();
+    this.directorName = this.directorName.toLowerCase().trim();
+  }
+
+  @BeforeUpdate()
+  checkFieldBeforeUpdate() {
+    this.checkFieldBeforeInsert();
+  }
+
+  @AfterLoad()
+  checkFieldAfterLoad() {
+    this.name = ucwords(this.name);
+    this.directorName = ucwords(this.directorName);
+  }
 }

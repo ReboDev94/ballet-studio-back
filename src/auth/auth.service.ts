@@ -57,7 +57,7 @@ export class AuthService {
   - CREAR SCHOOL
   - CREAR USER CON ROLE ADMIN
   */
-  createAccount(createAccountDto: CreateAccountDto) {
+  register(createAccountDto: CreateAccountDto) {
     return createAccountDto;
   }
 }

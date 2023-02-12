@@ -3,22 +3,24 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, Not } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
-import { LoginUserDto } from './dto';
+import { CreateUserDto, LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
 import { RegisterUserDto } from './dto';
 import { School } from '../school/entities/school.entity';
 import { Role } from './entities/role.entity';
 import { ValidRoles } from './interfaces/valid-roles';
 import { UpdateSchoolDto } from '../school/dto/update-school.dto';
-
+import { PaginationDto } from '../common/dto/pagination.dto';
+import { UpdateStatusUserDto } from './dto/update-status-user.dto';
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -113,6 +115,87 @@ export class AuthService {
     return {
       success: true,
       user,
+    };
+  }
+
+  async createUser(school: School, createUserDto: CreateUserDto) {
+    const { email } = createUserDto;
+    const exitsEmail = await this.userRepository.findOneBy({ email });
+    if (exitsEmail) throw new BadRequestException('email alredy exits');
+
+    try {
+      const user = this.userRepository.create({
+        ...createUserDto,
+        school,
+      });
+
+      const dbUser = await this.userRepository.save(user);
+
+      return {
+        success: true,
+        data: dbUser,
+      };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async deleteUser(id: number, schoolId: number) {
+    const dbUser = await this.userRepository.findOneBy({
+      id,
+      school: { id: schoolId },
+    });
+
+    if (!dbUser) throw new NotFoundException('User not found');
+    try {
+      await this.userRepository.softDelete({ id });
+      return { success: true, message: 'User deleted' };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async updateStatusUser(
+    id: number,
+    updateStatusUser: UpdateStatusUserDto,
+    schoolId: number,
+  ) {
+    const dbUser = await this.userRepository.findOneBy({
+      id,
+      school: { id: schoolId },
+    });
+
+    if (!dbUser) throw new NotFoundException('user not found');
+    const { status } = updateStatusUser;
+    try {
+      await this.userRepository.update(id, { isActive: status });
+      return {
+        success: true,
+        message: 'User status is updated',
+      };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async getAllUsers(
+    userId: number,
+    schoolId: number,
+    paginationDto: PaginationDto,
+  ) {
+    const { page = 1 } = paginationDto;
+    const limit = 15;
+    const offset = (page - 1) * 15;
+
+    const users = await this.userRepository.find({
+      take: limit,
+      skip: offset,
+      where: { id: Not(userId), school: { id: schoolId } },
+    });
+
+    return {
+      success: true,
+      data: users,
     };
   }
 

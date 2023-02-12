@@ -1,13 +1,19 @@
 import {
+  IsEmail,
+  IsOptional,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
-  Matches,
-  IsEmail,
 } from 'class-validator';
 
 import { regexPassword } from 'src/common/utils';
-export class LoginUserDto {
+
+export class CreateUserDto {
+  @IsString()
+  @MinLength(1)
+  name: string;
+
   @IsString()
   @IsEmail()
   email: string;
@@ -19,4 +25,8 @@ export class LoginUserDto {
     message: 'Password must have a Uppercase, lowercase letter and a number',
   })
   password: string;
+
+  @IsString()
+  @IsOptional()
+  phone: string;
 }

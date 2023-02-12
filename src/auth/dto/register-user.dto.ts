@@ -6,6 +6,8 @@ import {
   IsEmail,
 } from 'class-validator';
 
+import { regexPassword } from 'src/common/utils';
+
 export class RegisterUserDto {
   @IsString()
   @IsEmail()
@@ -18,7 +20,7 @@ export class RegisterUserDto {
   @IsString()
   @MinLength(6)
   @MaxLength(50)
-  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+  @Matches(regexPassword, {
     message: 'Password must have a Uppercase, lowercase letter and a number',
   })
   password: string;

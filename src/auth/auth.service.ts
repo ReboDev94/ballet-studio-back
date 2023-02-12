@@ -7,16 +7,17 @@ import {
 } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
-import { LoginUserDto } from './dto/login-user.dto';
-import { JwtService } from '@nestjs/jwt';
+import { LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
-import { CreateAccountDto } from './dto/create-account.dto';
+import { RegisterUserDto } from './dto';
 import { School } from '../school/entities/school.entity';
 import { Role } from './entities/role.entity';
 import { ValidRoles } from './interfaces/valid-roles';
+import { UpdateSchoolDto } from '../school/dto/update-school.dto';
 
 @Injectable()
 export class AuthService {
@@ -64,12 +65,7 @@ export class AuthService {
     };
   }
 
-  private getJwt(payload: JwtPayload) {
-    const token = this.jwtService.sign(payload);
-    return token;
-  }
-
-  async register(createAccountDto: CreateAccountDto) {
+  async register(createAccountDto: RegisterUserDto) {
     const { email, password, name, nameSchool } = createAccountDto;
 
     const exitsEmail = await this.userRepository.findOneBy({ email });
@@ -111,6 +107,30 @@ export class AuthService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async getUser(user: User) {
+    return {
+      success: true,
+      user,
+    };
+  }
+
+  async updateProfile(id: number, updateUserDto: UpdateSchoolDto) {
+    try {
+      await this.userRepository.update(id, updateUserDto);
+      return {
+        success: true,
+        message: 'User has been updated',
+      };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  private getJwt(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 
   private handleDBException(error: any) {

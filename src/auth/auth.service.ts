@@ -119,13 +119,14 @@ export class AuthService {
   }
 
   async createUser(school: School, createUserDto: CreateUserDto) {
-    const { email } = createUserDto;
+    const { email, password } = createUserDto;
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail) throw new BadRequestException('email alredy exits');
 
     try {
       const user = this.userRepository.create({
         ...createUserDto,
+        password: bcrypt.hashSync(password, 10),
         school,
       });
 

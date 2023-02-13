@@ -9,6 +9,6 @@ import { AuthModule } from 'src/auth/auth.module';
   controllers: [SchoolController],
   providers: [SchoolService],
   imports: [forwardRef(() => AuthModule), TypeOrmModule.forFeature([School])],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, SchoolService],
 })
 export class SchoolModule {}

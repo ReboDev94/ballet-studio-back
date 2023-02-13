@@ -25,4 +25,8 @@ export class CreateSchoolDto {
   @IsString()
   @MinLength(1)
   directorName: string;
+
+  @IsString()
+  @IsOptional()
+  logo?: string;
 }

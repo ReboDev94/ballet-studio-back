@@ -6,6 +6,7 @@ import { SeedModule } from './seed/seed.module';
 import { SchoolModule } from './school/school.module';
 import { CommonModule } from './common/common.module';
 import { FilesModule } from './files/files.module';
+import { StudentModule } from './student/student.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FilesModule } from './files/files.module';
     SchoolModule,
     CommonModule,
     FilesModule,
+    StudentModule,
   ],
   controllers: [],
   providers: [],

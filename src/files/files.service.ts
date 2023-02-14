@@ -21,7 +21,7 @@ export class FilesService {
     this.AWS_BUCKET = this.configService.get('AWS_BUCKET_NAME');
   }
 
-  private async uploadS3(
+  async uploadS3(
     file: Express.Multer.File,
     folder = '/',
     filename: string | null = null,
@@ -52,7 +52,7 @@ export class FilesService {
     }
   }
 
-  private async deleteS3(fileName: string) {
+  async deleteS3(fileName: string) {
     const s3 = new S3();
     try {
       await s3
@@ -72,7 +72,7 @@ export class FilesService {
     }
   }
 
-  private async getPresignedUrlS3(fileName: string, expire = 900) {
+  async getPresignedUrlS3(fileName: string, expire = 900) {
     const s3 = new S3();
     try {
       const result = await s3.getSignedUrlPromise('getObject', {

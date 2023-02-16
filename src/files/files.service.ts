@@ -1,12 +1,6 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidV4 } from 'uuid';
-import { SchoolService } from '../school/school.service';
-import { School } from '../school/entities/school.entity';
 import { S3 } from 'aws-sdk';
 
 @Injectable()
@@ -14,10 +8,7 @@ export class FilesService {
   private readonly logger = new Logger('FileService');
 
   private AWS_BUCKET: string;
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly schoolService: SchoolService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     this.AWS_BUCKET = this.configService.get('AWS_BUCKET_NAME');
   }
 
@@ -85,30 +76,5 @@ export class FilesService {
       this.logger.error(error.message);
       return { key: 'error', message: error.message };
     }
-  }
-
-  async uploadProfileSchool(
-    file: Express.Multer.File,
-    { id: schoolId, logo }: School,
-  ) {
-    try {
-      const { name } = await this.uploadS3(
-        file,
-        `school/${schoolId}/profile/`,
-        logo,
-      );
-      await this.schoolService.update(schoolId, { logo: name });
-      return {
-        success: true,
-        message: 'profile updated',
-      };
-    } catch (error) {
-      this.handleDBException(error);
-    }
-  }
-
-  private handleDBException(error: any) {
-    this.logger.error(error);
-    throw new InternalServerErrorException('help');
   }
 }

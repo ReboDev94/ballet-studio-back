@@ -74,7 +74,7 @@ export class FilesService {
       return result;
     } catch (error) {
       this.logger.error(error.message);
-      return { key: 'error', message: error.message };
+      return null;
     }
   }
 }

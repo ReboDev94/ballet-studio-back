@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -21,6 +22,9 @@ export class CreateStudentDto {
   address: string;
 
   @IsBoolean()
+  @Transform(
+    ({ value }) => [true, 'enabled', 'true', 1, '1'].indexOf(value) > -1,
+  )
   isOlder: boolean;
 
   @IsString({ each: true })

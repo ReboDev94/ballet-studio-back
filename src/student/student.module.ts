@@ -5,10 +5,15 @@ import { StudentController } from './student.controller';
 import { Student } from './entities/student.entity';
 import { AuthModule } from '../auth/auth.module';
 import { Tutor } from './entities/tutor.entity';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   controllers: [StudentController],
   providers: [StudentService],
-  imports: [AuthModule, TypeOrmModule.forFeature([Student, Tutor])],
+  imports: [
+    TypeOrmModule.forFeature([Student, Tutor]),
+    AuthModule,
+    FilesModule,
+  ],
 })
 export class StudentModule {}

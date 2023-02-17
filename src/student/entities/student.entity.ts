@@ -39,7 +39,7 @@ export class Student {
   @ManyToOne(() => School, (school) => school.student, { nullable: false })
   school: School;
 
-  @OneToOne(() => Tutor, { nullable: false })
+  @OneToOne(() => Tutor, { nullable: false, onDelete: 'CASCADE', eager: true })
   @JoinColumn()
   tutor: Tutor;
 

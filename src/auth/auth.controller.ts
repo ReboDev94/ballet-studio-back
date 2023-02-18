@@ -17,8 +17,8 @@ import { GetUser } from './decorators/get-user.decorator';
 import { UpdateSchoolDto } from '../school/dto/update-school.dto';
 import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces/valid-roles';
-import { PaginationDto } from '../common/dto/pagination.dto';
 import { School } from '../school/entities/school.entity';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -80,11 +80,11 @@ export class AuthController {
 
   @Get('users')
   @Auth(ValidRoles.admin)
-  getAllUsers(@GetUser() user: User, @Query() paginationDto: PaginationDto) {
+  getAllUsers(@GetUser() user: User, @Query() pageOptionsDto: PageOptionsDto) {
     const {
       id: userId,
       school: { id: schoolId },
     } = user;
-    return this.authService.getAllUsers(userId, schoolId, paginationDto);
+    return this.authService.getAllUsers(userId, schoolId, pageOptionsDto);
   }
 }

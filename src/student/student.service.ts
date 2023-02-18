@@ -13,6 +13,9 @@ import { Tutor } from './entities/tutor.entity';
 import { Student } from './entities/student.entity';
 import { School } from '../school/entities/school.entity';
 import { FilesService } from '../files/files.service';
+import { PageOptionsDto } from '../common/dto/page-options.dto';
+import { PageMetaDto } from '../common/dto/page-meta.dto';
+import { PageDto } from '../common/dto/page.dto';
 
 @Injectable()
 export class StudentService {
@@ -151,20 +154,51 @@ export class StudentService {
     const student = await this.studentRepository.findOneBy({ id });
     if (!student) throw new NotFoundException('student not found');
     if (signedAvatar)
-      student.avatar = student.avatar
-        ? await this.fileService.getPresignedUrlS3(
-            `student/${student.id}/profile/${student.avatar}`,
-          )
-        : null;
+      student.avatar = await this.getUrlSignedAvatar(id, student.avatar);
     return student;
   }
 
-  findAll() {
-    return `This action returns all student`;
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.studentRepository.softDelete({ id });
+    return {
+      success: true,
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
+  async findAll({ id }: School, pageOptionsDto: PageOptionsDto) {
+    const { take, skip } = pageOptionsDto;
+
+    const itemCount = await this.studentRepository.count({
+      where: {
+        school: { id },
+      },
+    });
+    const students = await this.studentRepository.find({
+      take,
+      skip,
+      where: {
+        school: { id },
+      },
+    });
+    for (const st of students) {
+      st.avatar = await this.getUrlSignedAvatar(st.id, st.avatar);
+    }
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+    const data = new PageDto(students, pageMetaDto);
+    return {
+      success: true,
+      students: { ...data },
+    };
+  }
+
+  async getUrlSignedAvatar(studentId: number, avatarName: string | null) {
+    const url = avatarName
+      ? await this.fileService.getPresignedUrlS3(
+          `student/${studentId}/profile/${avatarName}`,
+        )
+      : null;
+    return url;
   }
 
   private handleDBException(error: any) {

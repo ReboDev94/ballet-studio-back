@@ -19,8 +19,10 @@ import { School } from '../school/entities/school.entity';
 import { Role } from './entities/role.entity';
 import { ValidRoles } from './interfaces/valid-roles';
 import { UpdateSchoolDto } from '../school/dto/update-school.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
 import { UpdateStatusUserDto } from './dto/update-status-user.dto';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageMetaDto } from '../common/dto/page-meta.dto';
+import { PageDto } from '../common/dto/page.dto';
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -182,21 +184,25 @@ export class AuthService {
   async getAllUsers(
     userId: number,
     schoolId: number,
-    paginationDto: PaginationDto,
+    pageOptionsDto: PageOptionsDto,
   ) {
-    const { page = 1 } = paginationDto;
-    const limit = 15;
-    const offset = (page - 1) * 15;
+    const { take, skip } = pageOptionsDto;
 
+    const itemCount = await this.userRepository.count({
+      where: { id: Not(userId), school: { id: schoolId } },
+    });
     const users = await this.userRepository.find({
-      take: limit,
-      skip: offset,
+      take,
+      skip,
       where: { id: Not(userId), school: { id: schoolId } },
     });
 
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+    const data = new PageDto(users, pageMetaDto);
+
     return {
       success: true,
-      data: users,
+      users: { ...data },
     };
   }
 

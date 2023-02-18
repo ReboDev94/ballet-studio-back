@@ -7,6 +7,8 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseIntPipe,
+  Delete,
+  Query,
 } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -17,6 +19,8 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { School } from '../school/entities/school.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilterImage } from 'src/files/helpers';
+import { Get } from '@nestjs/common';
+import { PageOptionsDto } from '../common/dto/page-options.dto';
 
 @Auth(ValidRoles.admin)
 @Controller('student')
@@ -53,18 +57,21 @@ export class StudentController {
     return this.studentService.update(id, file, updateStudentDto);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.studentService.findAll();
-  // }
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.studentService.remove(id);
+  }
+
+  @Get()
+  findAll(
+    @GetUser('school') school: School,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
+    return this.studentService.findAll(school, pageOptionsDto);
+  }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.studentService.findOne(+id);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.studentService.remove(+id);
   // }
 }

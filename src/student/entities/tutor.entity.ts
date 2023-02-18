@@ -1,10 +1,13 @@
 import { ucwords } from 'src/common/utils';
+import { Student } from './student.entity';
 import {
   AfterLoad,
   BeforeInsert,
   BeforeUpdate,
   Column,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -27,6 +30,13 @@ export class Tutor {
 
   @Column('bool', { default: false })
   authorizePhotos: boolean;
+
+  @OneToOne(() => Student, (student) => student.tutor, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  student: Student;
 
   @BeforeInsert()
   checkFieldBeforeInsert() {

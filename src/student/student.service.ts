@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -48,25 +49,26 @@ export class StudentService {
         tutorCelPhone,
       } = createStudentDto;
 
-      const tutor = this.tutorRepository.create({
-        name: isOlder ? name : tutorName,
-        email: tutorEmail,
-        phone: tutorPhone,
-        celPhone: tutorCelPhone,
-      });
-      const dbTutor = await queryRunner.manager.save(tutor);
-
       const student = this.studentRepository.create({
         name,
         dateOfBirth,
         address,
         isOlder,
         dieseses,
-        tutor: dbTutor,
         school,
       });
 
       const dbStudent = await queryRunner.manager.save(student);
+
+      const tutor = this.tutorRepository.create({
+        name: isOlder ? name : tutorName,
+        email: tutorEmail,
+        phone: tutorPhone,
+        celPhone: tutorCelPhone,
+        student: dbStudent,
+      });
+
+      await queryRunner.manager.save(tutor);
       await queryRunner.commitTransaction();
 
       if (file) {
@@ -79,8 +81,7 @@ export class StudentService {
         });
       }
 
-      const studentData = await this.findOne(dbStudent.id);
-      /* TODO: RETURN FINDONE STUDENT */
+      const studentData = await this.findOne(dbStudent.id, true);
       return {
         success: true,
         data: studentData,
@@ -100,44 +101,43 @@ export class StudentService {
   ) {
     const { tutorName, tutorEmail, tutorPhone, tutorCelPhone, ...restDto } =
       updateStudentDto;
-
-    const student = await this.findOne(id);
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
+    const { tutor: preTutor, ...preStudent } = await this.findOne(id);
+
     try {
-      const preStudent = await this.studentRepository.preload({
-        ...student,
-        ...restDto,
-      });
-
-      const preTutor = await this.tutorRepository.preload({
-        ...preStudent.tutor,
-        name: preStudent.isOlder ? preStudent.name : tutorName,
-        email: tutorEmail,
-        celPhone: tutorCelPhone,
-        phone: tutorPhone,
-      });
-
-      preStudent.tutor = preTutor;
-
       if (file) {
         const { name } = await this.fileService.uploadS3(
           file,
-          `student/${preStudent.id}/profile/`,
+          `student/${id}/profile/`,
           preStudent.avatar,
         );
         preStudent.avatar = name;
       }
 
-      await queryRunner.manager.save(preStudent);
+      const student = await this.studentRepository.preload({
+        ...preStudent,
+        ...restDto,
+      });
+
+      const tutor = await this.tutorRepository.preload({
+        ...preTutor,
+        name: student.isOlder ? student.name : tutorName,
+        email: tutorEmail,
+        celPhone: tutorCelPhone,
+        phone: tutorPhone,
+      });
+
+      await queryRunner.manager.save(student);
+      await queryRunner.manager.save(tutor);
       await queryRunner.commitTransaction();
 
-      const dbStudent = await this.findOne(preStudent.id);
+      const studentData = await this.findOne(id, true);
       return {
         success: true,
-        data: dbStudent,
+        data: studentData,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -147,9 +147,15 @@ export class StudentService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, signedAvatar = false) {
     const student = await this.studentRepository.findOneBy({ id });
     if (!student) throw new NotFoundException('student not found');
+    if (signedAvatar)
+      student.avatar = student.avatar
+        ? await this.fileService.getPresignedUrlS3(
+            `student/${student.id}/profile/${student.avatar}`,
+          )
+        : null;
     return student;
   }
 

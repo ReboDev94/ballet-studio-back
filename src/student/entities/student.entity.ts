@@ -3,11 +3,13 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { School } from '../../school/entities/school.entity';
 import { Tutor } from './tutor.entity';
@@ -39,9 +41,24 @@ export class Student {
   @ManyToOne(() => School, (school) => school.student, { nullable: false })
   school: School;
 
-  @OneToOne(() => Tutor, { nullable: false, onDelete: 'CASCADE', eager: true })
-  @JoinColumn()
+  @OneToOne(() => Tutor, (tutor) => tutor.student, { eager: true })
   tutor: Tutor;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
+
+  @CreateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
+  })
+  updatedAt: Date;
 
   @BeforeInsert()
   checkFieldBeforeInsert() {

@@ -23,6 +23,7 @@ import { UpdateStatusUserDto } from './dto/update-status-user.dto';
 import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
+import { SearchUserDto } from './dto/search-user.dto';
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -184,18 +185,32 @@ export class AuthService {
   async getAllUsers(
     userId: number,
     schoolId: number,
-    pageOptionsDto: PageOptionsDto,
+    searchUserDto: SearchUserDto,
   ) {
-    const { take, skip } = pageOptionsDto;
+    const { take, skip, page, name } = searchUserDto;
 
-    const itemCount = await this.userRepository.count({
-      where: { id: Not(userId), school: { id: schoolId } },
-    });
-    const users = await this.userRepository.find({
+    const pageOptionsDto: PageOptionsDto = {
       take,
       skip,
-      where: { id: Not(userId), school: { id: schoolId } },
-    });
+      page,
+    };
+
+    const query =
+      'user.name like :name and "schoolId" = :schoolId and user.id != :userId';
+    const conditions = {
+      name: `${name ? name.toLowerCase() : ''}%`,
+      schoolId,
+      userId,
+    };
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    const itemCount = await queryBuilder.where(query, conditions).getCount();
+    const users = await queryBuilder
+      .where(query, conditions)
+      .offset(skip)
+      .take(take)
+      .leftJoinAndSelect('user.roles', 'roles')
+      .getMany();
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     const data = new PageDto(users, pageMetaDto);
@@ -207,8 +222,14 @@ export class AuthService {
   }
 
   async updateProfile(id: number, updateUserDto: UpdateSchoolDto) {
+    const user = await this.userRepository.preload({
+      id,
+      ...updateUserDto,
+    });
+
+    if (!user) throw new NotFoundException('user not found');
     try {
-      await this.userRepository.update(id, updateUserDto);
+      await this.userRepository.save(user);
       return {
         success: true,
         message: 'User has been updated',

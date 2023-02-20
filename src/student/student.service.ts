@@ -13,9 +13,10 @@ import { Tutor } from './entities/tutor.entity';
 import { Student } from './entities/student.entity';
 import { School } from '../school/entities/school.entity';
 import { FilesService } from '../files/files.service';
-import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
+import { SearcStudenthDto } from './dto/search-student.dto';
+import { PageOptionsDto } from '../common/dto/page-options.dto';
 
 @Injectable()
 export class StudentService {
@@ -166,24 +167,24 @@ export class StudentService {
     };
   }
 
-  async findAll({ id }: School, pageOptionsDto: PageOptionsDto) {
-    const { take, skip } = pageOptionsDto;
+  async findAll({ id }: School, searchStudentDto: SearcStudenthDto) {
+    const { take, skip, page, name } = searchStudentDto;
+    const pageOptionsDto: PageOptionsDto = { take, skip, page };
 
-    const itemCount = await this.studentRepository.count({
-      where: {
-        school: { id },
-      },
-    });
-    const students = await this.studentRepository.find({
-      take,
-      skip,
-      where: {
-        school: { id },
-      },
-    });
+    const query = 'student.name like :name and student.schoolId = :schoolId';
+    const conditions = {
+      schoolId: id,
+      name: `${name ? name.toLowerCase() : ''}%`,
+    };
+
+    const queryBuilder = this.studentRepository.createQueryBuilder('student');
+    const itemCount = await queryBuilder.where(query, conditions).getCount();
+    const students = await queryBuilder.where(query, conditions).getMany();
+
     for (const st of students) {
       st.avatar = await this.getUrlSignedAvatar(st.id, st.avatar);
     }
+
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     const data = new PageDto(students, pageMetaDto);
     return {

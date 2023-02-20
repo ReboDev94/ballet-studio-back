@@ -18,7 +18,7 @@ import { UpdateSchoolDto } from '../school/dto/update-school.dto';
 import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces/valid-roles';
 import { School } from '../school/entities/school.entity';
-import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { SearchUserDto } from './dto/search-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -80,11 +80,11 @@ export class AuthController {
 
   @Get('users')
   @Auth(ValidRoles.admin)
-  getAllUsers(@GetUser() user: User, @Query() pageOptionsDto: PageOptionsDto) {
+  getAllUsers(@GetUser() user: User, @Query() searchUserDto: SearchUserDto) {
     const {
       id: userId,
       school: { id: schoolId },
     } = user;
-    return this.authService.getAllUsers(userId, schoolId, pageOptionsDto);
+    return this.authService.getAllUsers(userId, schoolId, searchUserDto);
   }
 }

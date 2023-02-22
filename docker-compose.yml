@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:14.3
+    restart: always
+    ports:
+      - '${PGPORT}:${PGPORT}'
+    environment:
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE}
+    container_name: balletStudio
+    volumes:
+      - ./postgres:/var/lib/postgresql/data

@@ -1,6 +1,7 @@
 import { User } from 'src/auth/entities';
 import { ucwords } from 'src/common/utils';
 import { Student } from '../../student/entities/student.entity';
+import { Group } from '../../group/entities/group.entity';
 import {
   AfterLoad,
   BeforeInsert,
@@ -45,6 +46,9 @@ export class School {
 
   @OneToMany(() => Student, (student) => student.school)
   student: Student;
+
+  @OneToMany(() => Group, (group) => group.school)
+  groups: Group[];
 
   @BeforeInsert()
   checkFieldBeforeInsert() {

@@ -11,11 +11,13 @@ import {
   BeforeInsert,
   BeforeUpdate,
   AfterLoad,
+  OneToMany,
 } from 'typeorm';
 
 import { Role } from './role.entity';
 import { School } from '../../school/entities/school.entity';
 import { ucwords } from 'src/common/utils';
+import { Group } from '../../group/entities/group.entity';
 
 @Entity()
 export class User {
@@ -48,6 +50,9 @@ export class User {
     nullable: false,
   })
   school: School;
+
+  @OneToMany(() => Group, (group) => group.teacher)
+  groups: Group[];
 
   @DeleteDateColumn()
   deletedAt: Date;

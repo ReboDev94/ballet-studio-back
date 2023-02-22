@@ -7,6 +7,7 @@ import { SchoolModule } from './school/school.module';
 import { CommonModule } from './common/common.module';
 import { FilesModule } from './files/files.module';
 import { StudentModule } from './student/student.module';
+import { GroupModule } from './group/group.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StudentModule } from './student/student.module';
     CommonModule,
     FilesModule,
     StudentModule,
+    GroupModule,
   ],
   controllers: [],
   providers: [],

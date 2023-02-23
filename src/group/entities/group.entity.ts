@@ -6,9 +6,11 @@ import {
   DeleteDateColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { School } from '../../school/entities/school.entity';
+import { GroupStudents } from './group-students.entity';
 
 @Entity()
 export class Group {
@@ -48,6 +50,9 @@ export class Group {
     eager: true,
   })
   school: School;
+
+  @OneToMany(() => GroupStudents, (groupStudent) => groupStudent.group)
+  students: GroupStudents[];
 
   @DeleteDateColumn()
   deletedAt: Date;

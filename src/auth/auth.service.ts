@@ -138,7 +138,7 @@ export class AuthService {
 
       return {
         success: true,
-        data: dbUser,
+        user: dbUser,
       };
     } catch (error) {
       this.handleDBException(error);

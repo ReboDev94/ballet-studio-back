@@ -4,6 +4,7 @@ import {
   Patch,
   UseInterceptors,
   UploadedFile,
+  Get,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { UpdateSchoolDto } from './dto/update-school.dto';
@@ -14,12 +15,12 @@ import { Auth } from '../auth/decorators/auth.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilterImage } from 'src/files/helpers';
 
+@Auth(ValidRoles.admin)
 @Controller('school')
 export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
   @Patch()
-  @Auth(ValidRoles.admin)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 2097152 },
@@ -32,5 +33,10 @@ export class SchoolController {
     @Body() updateSchoolDto: UpdateSchoolDto,
   ) {
     return this.schoolService.update(id, file, updateSchoolDto);
+  }
+
+  @Get()
+  findOne(@GetUser('school') school: School) {
+    return this.schoolService.findOne(school);
   }
 }

@@ -40,7 +40,7 @@ export class GroupService {
       const dbGroup = await this.groupRepository.save(group);
       return {
         success: true,
-        data: dbGroup,
+        group: dbGroup,
       };
     } catch (error) {
       this.handleDBException(error);

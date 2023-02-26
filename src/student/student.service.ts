@@ -87,7 +87,7 @@ export class StudentService {
       const studentData = await this.findOne(dbStudent.id, true);
       return {
         success: true,
-        data: studentData,
+        student: studentData,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -140,7 +140,7 @@ export class StudentService {
       const studentData = await this.findOne(id, true);
       return {
         success: true,
-        data: studentData,
+        student: studentData,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();

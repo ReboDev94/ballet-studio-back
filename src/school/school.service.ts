@@ -48,6 +48,13 @@ export class SchoolService {
     }
   }
 
+  async findOne(school: School) {
+    return {
+      success: true,
+      school,
+    };
+  }
+
   private handleDBException(error: any) {
     this.logger.error(error);
     throw new InternalServerErrorException('help');

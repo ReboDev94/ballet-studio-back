@@ -42,6 +42,7 @@ export class SchoolService {
       await this.schoolRepository.save(school);
       return {
         success: true,
+        message: 'school has been updated',
       };
     } catch (error) {
       this.handleDBException(error);

@@ -52,7 +52,7 @@ export class GroupService {
       where: { id },
       relations: { teacher: true },
     });
-    return dbGroup;
+    return { success: true, group: dbGroup };
   }
 
   async findAll({ id: schoolId }: School, searchGroupDto: SearchGroupDto) {

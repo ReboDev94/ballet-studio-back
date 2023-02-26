@@ -66,6 +66,7 @@ export class AuthService {
 
     delete user.password;
     return {
+      success: true,
       ...user,
       token: this.getJwt({ id: user.id }),
     };

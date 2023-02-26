@@ -39,7 +39,7 @@ export class StudentController {
     @UploadedFile() file: Express.Multer.File,
     @Body() createStudentDto: CreateStudentDto,
   ) {
-    return this.studentService.create(school, file, createStudentDto);
+    return this.studentService.create(file, createStudentDto, school);
   }
 
   @Patch(':id')
@@ -50,16 +50,20 @@ export class StudentController {
     }),
   )
   update(
+    @GetUser('school') school: School,
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
     @Body() updateStudentDto: UpdateStudentDto,
   ) {
-    return this.studentService.update(id, file, updateStudentDto);
+    return this.studentService.update(id, file, updateStudentDto, school);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.studentService.remove(id);
+  remove(
+    @GetUser('school') school: School,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.studentService.remove(id, school);
   }
 
   @Get()
@@ -67,11 +71,6 @@ export class StudentController {
     @GetUser('school') school: School,
     @Query() searchStudentDto: SearcStudenthDto,
   ) {
-    return this.studentService.findAll(school, searchStudentDto);
+    return this.studentService.findAll(searchStudentDto, school);
   }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.studentService.findOne(+id);
-  // }
 }

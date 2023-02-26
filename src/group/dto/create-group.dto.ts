@@ -5,7 +5,6 @@ import {
   ValidateNested,
   IsDateString,
   IsEnum,
-  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SchedulesDto } from './schedules.dto';

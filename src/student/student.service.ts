@@ -31,9 +31,9 @@ export class StudentService {
   ) {}
 
   async create(
-    school: School,
     file: Express.Multer.File,
     createStudentDto: CreateStudentDto,
+    school: School,
   ) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -84,7 +84,7 @@ export class StudentService {
         });
       }
 
-      const studentData = await this.findOne(dbStudent.id, true);
+      const studentData = await this.findOne(dbStudent.id, school, true);
       return {
         success: true,
         student: studentData,
@@ -101,6 +101,7 @@ export class StudentService {
     id: number,
     file: Express.Multer.File,
     updateStudentDto: UpdateStudentDto,
+    school: School,
   ) {
     const { tutorName, tutorEmail, tutorPhone, tutorCelPhone, ...restDto } =
       updateStudentDto;
@@ -108,7 +109,7 @@ export class StudentService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    const { tutor: preTutor, ...preStudent } = await this.findOne(id);
+    const { tutor: preTutor, ...preStudent } = await this.findOne(id, school);
 
     try {
       if (file) {
@@ -137,7 +138,7 @@ export class StudentService {
       await queryRunner.manager.save(tutor);
       await queryRunner.commitTransaction();
 
-      const studentData = await this.findOne(id, true);
+      const studentData = await this.findOne(id, school, true);
       return {
         success: true,
         student: studentData,
@@ -150,23 +151,25 @@ export class StudentService {
     }
   }
 
-  async findOne(id: number, signedAvatar = false) {
-    const student = await this.studentRepository.findOneBy({ id });
+  async findOne(id: number, { id: schoolId }: School, signedAvatar = false) {
+    const student = await this.studentRepository.findOne({
+      where: { id, school: { id: schoolId } },
+    });
     if (!student) throw new NotFoundException('student not found');
     if (signedAvatar)
       student.avatar = await this.getUrlSignedAvatar(id, student.avatar);
     return student;
   }
 
-  async remove(id: number) {
-    await this.findOne(id);
+  async remove(id: number, school: School) {
+    await this.findOne(id, school);
     await this.studentRepository.softDelete({ id });
     return {
       success: true,
     };
   }
 
-  async findAll({ id }: School, searchStudentDto: SearcStudenthDto) {
+  async findAll(searchStudentDto: SearcStudenthDto, { id }: School) {
     const { take, skip, page, name } = searchStudentDto;
     const pageOptionsDto: PageOptionsDto = { take, skip, page };
 

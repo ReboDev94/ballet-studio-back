@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
@@ -26,7 +27,7 @@ export class GroupService {
     private readonly authService: AuthService,
   ) {}
 
-  async create(school: School, createGroupDto: CreateGroupDto) {
+  async create(createGroupDto: CreateGroupDto, school: School) {
     const { teacherId } = createGroupDto;
     const { id: schoolId } = school;
     const teacher = await this.authService.findOneTeacher(teacherId, schoolId);
@@ -47,11 +48,39 @@ export class GroupService {
     }
   }
 
-  async findOne(id: number) {
+  async update(
+    id: number,
+    updateGroupDto: UpdateGroupDto,
+    { id: schoolId }: School,
+  ) {
+    const { teacherId } = updateGroupDto;
+    const teacher = await this.authService.findOneTeacher(teacherId, schoolId);
+
+    try {
+      const preGroup = await this.groupRepository.preload({
+        id,
+        ...updateGroupDto,
+        teacher,
+        school: { id: schoolId },
+      });
+
+      await this.groupRepository.save(preGroup);
+
+      return {
+        success: true,
+        message: 'group has been updated',
+      };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async findOne(id: number, { id: schoolId }: School) {
     const dbGroup = await this.groupRepository.findOne({
-      where: { id },
+      where: { id, school: { id: schoolId } },
       relations: { teacher: true },
     });
+    if (!dbGroup) throw new NotFoundException('group not found');
     return { success: true, group: dbGroup };
   }
 
@@ -77,14 +106,15 @@ export class GroupService {
     };
   }
 
-  /*
-  update(id: number, updateGroupDto: UpdateGroupDto) {
-    return `This action updates a #${id} group`;
+  async remove(id: number, school: School) {
+    await this.findOne(id, school);
+    try {
+      await this.groupRepository.softDelete({ id });
+      return { success: true, message: 'group has been deleted' };
+    } catch (error) {
+      this.handleDBException(error);
+    }
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} group`;
-  } */
 
   private handleDBException(error: any) {
     this.logger.error(error);

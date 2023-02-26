@@ -1,5 +1,7 @@
 import {
+  ArrayNotEmpty,
   IsEmail,
+  IsNotEmpty,
   IsOptional,
   IsString,
   Matches,
@@ -8,6 +10,8 @@ import {
 } from 'class-validator';
 
 import { regexPassword } from 'src/common/utils';
+import { IsArray, IsEnum } from 'class-validator';
+import { ValidRoles } from '../interfaces/valid-roles';
 
 export class CreateUserDto {
   @IsString()
@@ -29,4 +33,9 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   phone: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(ValidRoles, { each: true })
+  roles: ValidRoles[];
 }

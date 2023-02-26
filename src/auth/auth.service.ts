@@ -7,7 +7,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -123,14 +123,21 @@ export class AuthService {
     };
   }
 
-  async createUser(school: School, createUserDto: CreateUserDto) {
+  async createUser(createUserDto: CreateUserDto, school: School) {
     const { email, password } = createUserDto;
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail) throw new BadRequestException('email alredy exits');
 
     try {
+      const { roles, ...rest } = createUserDto;
+
+      const dbRoles = await this.roleRepository.find({
+        where: { slug: In(roles) },
+      });
+
       const user = this.userRepository.create({
-        ...createUserDto,
+        ...rest,
+        roles: dbRoles,
         password: bcrypt.hashSync(password, 10),
         school,
       });
@@ -146,7 +153,7 @@ export class AuthService {
     }
   }
 
-  async deleteUser(id: number, schoolId: number) {
+  async deleteUser(id: number, { id: schoolId }: School) {
     const dbUser = await this.userRepository.findOneBy({
       id,
       school: { id: schoolId },
@@ -164,7 +171,7 @@ export class AuthService {
   async updateStatusUser(
     id: number,
     updateStatusUser: UpdateStatusUserDto,
-    schoolId: number,
+    { id: schoolId }: School,
   ) {
     const dbUser = await this.userRepository.findOneBy({
       id,

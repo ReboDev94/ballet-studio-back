@@ -47,26 +47,23 @@ export class AuthController {
     @GetUser('school') school: School,
     @Body() createUserDto: CreateUserDto,
   ) {
-    return this.authService.createUser(school, createUserDto);
+    return this.authService.createUser(createUserDto, school);
   }
 
   @Delete('user/:id')
   @Auth(ValidRoles.admin)
-  deleteUser(
-    @GetUser('school') { id: schoolId }: School,
-    @Param('id') id: number,
-  ) {
-    return this.authService.deleteUser(id, schoolId);
+  deleteUser(@GetUser('school') school: School, @Param('id') id: number) {
+    return this.authService.deleteUser(id, school);
   }
 
   @Patch('update-status-user/:id')
   @Auth(ValidRoles.admin)
   updateStatusUser(
-    @GetUser('school') { id: schoolId }: School,
+    @GetUser('school') school: School,
     @Param('id') id: number,
     @Body() updateStatusUser: UpdateStatusUserDto,
   ) {
-    return this.authService.updateStatusUser(id, updateStatusUser, schoolId);
+    return this.authService.updateStatusUser(id, updateStatusUser, school);
   }
 
   @Patch('update-profile')

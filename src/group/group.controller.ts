@@ -28,12 +28,24 @@ export class GroupController {
     @GetUser('school') school: School,
     @Body() createGroupDto: CreateGroupDto,
   ) {
-    return this.groupService.create(school, createGroupDto);
+    return this.groupService.create(createGroupDto, school);
+  }
+
+  @Patch(':id')
+  update(
+    @GetUser('school') school: School,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateGroupDto: UpdateGroupDto,
+  ) {
+    return this.groupService.update(id, updateGroupDto, school);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.groupService.findOne(id);
+  findOne(
+    @GetUser('school') school: School,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.groupService.findOne(id, school);
   }
 
   @Get()
@@ -44,13 +56,11 @@ export class GroupController {
     return this.groupService.findAll(school, searchGroupDto);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
-  //   return this.groupService.update(+id, updateGroupDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.groupService.remove(+id);
-  // }
+  @Delete(':id')
+  remove(
+    @GetUser('school') school: School,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.groupService.remove(id, school);
+  }
 }

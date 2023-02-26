@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+
 import { User } from '../../auth/entities/user.entity';
 import { School } from '../../school/entities/school.entity';
 import { GroupStudents } from './group-students.entity';
@@ -41,13 +42,11 @@ export class Group {
 
   @ManyToOne(() => User, (user) => user.groups, {
     nullable: false,
-    eager: true,
   })
   teacher: User;
 
   @ManyToOne(() => School, (school) => school.groups, {
     nullable: false,
-    eager: true,
   })
   school: School;
 

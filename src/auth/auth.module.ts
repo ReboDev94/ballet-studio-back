@@ -30,6 +30,6 @@ import { SchoolModule } from '../school/school.module';
     }),
     forwardRef(() => SchoolModule),
   ],
-  exports: [TypeOrmModule, JwtStrategy, PassportModule, JwtModule],
+  exports: [TypeOrmModule, JwtStrategy, PassportModule, JwtModule, AuthService],
 })
 export class AuthModule {}

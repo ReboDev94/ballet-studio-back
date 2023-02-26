@@ -1,9 +1,9 @@
 export enum Days {
-  L = 'Lunes',
-  M = 'Martes',
-  MI = 'Miercoles',
-  J = 'Jueves',
-  V = 'Viernes',
-  S = 'Sabado',
-  D = 'Domingo',
+  LUNES = 'L',
+  MARTES = 'M',
+  MIERCOLES = 'MI',
+  JUEVES = 'J',
+  VIERNES = 'V',
+  SABADO = 'S',
+  DOMINGO = 'D',
 }

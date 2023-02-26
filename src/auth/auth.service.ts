@@ -1,12 +1,13 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DataSource, Repository, Not } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -237,6 +238,22 @@ export class AuthService {
     } catch (error) {
       this.handleDBException(error);
     }
+  }
+
+  async findOneTeacher(teacherId: number, schoolId: number) {
+    const teacher = await this.userRepository.findOne({
+      where: {
+        id: teacherId,
+        school: { id: schoolId },
+      },
+    });
+
+    if (!teacher) throw new NotFoundException('Teacher not found');
+    const isTeacher = teacher.roles.find(
+      (role) => role.slug === ValidRoles.teacher,
+    );
+    if (!isTeacher) throw new ForbiddenException('User is not teacher');
+    return teacher;
   }
 
   private getJwt(payload: JwtPayload) {

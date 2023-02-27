@@ -196,7 +196,7 @@ export class AuthService {
     schoolId: number,
     searchUserDto: SearchUserDto,
   ) {
-    const { take, skip, page, name } = searchUserDto;
+    const { take, skip, page, name, role } = searchUserDto;
 
     const pageOptionsDto: PageOptionsDto = {
       take,
@@ -206,20 +206,25 @@ export class AuthService {
 
     const query =
       'user.name like :name and "schoolId" = :schoolId and user.id != :userId';
-    const conditions = {
+
+    const conditions: any = {
       name: `${name ? name.toLowerCase() : ''}%`,
       schoolId,
       userId,
     };
-    const queryBuilder = this.userRepository.createQueryBuilder('user');
 
-    const itemCount = await queryBuilder.where(query, conditions).getCount();
-    const users = await queryBuilder
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+    const preQueryBuilder = queryBuilder
       .where(query, conditions)
-      .offset(skip)
-      .take(take)
-      .leftJoinAndSelect('user.roles', 'roles')
-      .getMany();
+      .leftJoinAndSelect('user.roles', 'roles');
+
+    if (role) {
+      preQueryBuilder.andWhere('roles.slug IN (:...roleSlug)', {
+        roleSlug: [role],
+      });
+    }
+    const itemCount = await preQueryBuilder.getCount();
+    const users = await preQueryBuilder.offset(skip).take(take).getMany();
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     const data = new PageDto(users, pageMetaDto);

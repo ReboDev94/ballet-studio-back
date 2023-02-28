@@ -16,6 +16,9 @@ import { SearchGroupDto } from './dto/search-group';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
+import { AddStudentsGroup } from './dto/add-students-group.dto';
+import { StudentService } from '../student/student.service';
+import { GroupStudents } from './entities/group-students.entity';
 
 @Injectable()
 export class GroupService {
@@ -24,7 +27,10 @@ export class GroupService {
   constructor(
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
+    @InjectRepository(GroupStudents)
+    private readonly groupStudentsRepository: Repository<GroupStudents>,
     private readonly authService: AuthService,
+    private readonly studentService: StudentService,
   ) {}
 
   async create(createGroupDto: CreateGroupDto, school: School) {
@@ -111,6 +117,64 @@ export class GroupService {
     try {
       await this.groupRepository.softDelete({ id });
       return { success: true, message: 'group has been deleted' };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async findStudentGroupAlthoughItWasRemoved(
+    studentId: number,
+    groupId: number,
+  ) {
+    const groupStudent = await this.groupStudentsRepository.findOne({
+      where: {
+        student: { id: studentId },
+        group: { id: groupId },
+      },
+      withDeleted: true,
+    });
+
+    return groupStudent;
+  }
+
+  async addStudents(
+    groupId: number,
+    addStudentsGroupDto: AddStudentsGroup,
+    school: School,
+  ) {
+    const { students } = addStudentsGroupDto;
+    const studentsEntities = await this.studentService.getEntitiesByIds(
+      students,
+      school,
+    );
+
+    if (studentsEntities.length !== students.length)
+      throw new NotFoundException('Students not found');
+
+    try {
+      const groupStudents: GroupStudents[] = [];
+      for (const { id: studentId } of studentsEntities) {
+        const groupStudentExits =
+          await this.findStudentGroupAlthoughItWasRemoved(studentId, groupId);
+
+        if (groupStudentExits) {
+          groupStudentExits.deletedAt = null;
+          groupStudents.push(groupStudentExits);
+        } else {
+          groupStudents.push(
+            this.groupStudentsRepository.create({
+              student: { id: studentId },
+              group: { id: groupId },
+            }),
+          );
+        }
+      }
+
+      await this.groupStudentsRepository.save(groupStudents);
+      /* TODO: RETURN ALL STUDENTS FOR GROUP */
+      return {
+        success: true,
+      };
     } catch (error) {
       this.handleDBException(error);
     }

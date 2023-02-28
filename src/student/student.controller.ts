@@ -20,7 +20,7 @@ import { School } from '../school/entities/school.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilterImage } from 'src/files/helpers';
 import { Get } from '@nestjs/common';
-import { SearcStudenthDto } from './dto/search-student.dto';
+import { SearchStudenthDto } from './dto/search-student.dto';
 
 @Auth(ValidRoles.admin)
 @Controller('student')
@@ -69,7 +69,7 @@ export class StudentController {
   @Get()
   findAll(
     @GetUser('school') school: School,
-    @Query() searchStudentDto: SearcStudenthDto,
+    @Query() searchStudentDto: SearchStudenthDto,
   ) {
     return this.studentService.findAll(searchStudentDto, school);
   }

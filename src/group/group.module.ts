@@ -6,6 +6,7 @@ import { Group } from './entities/group.entity';
 import { GroupStudents } from './entities/group-students.entity';
 import { AttenDance } from './entities/attendance.entity';
 import { AuthModule } from '../auth/auth.module';
+import { StudentModule } from '../student/student.module';
 
 @Module({
   controllers: [GroupController],
@@ -13,6 +14,7 @@ import { AuthModule } from '../auth/auth.module';
   imports: [
     TypeOrmModule.forFeature([Group, GroupStudents, AttenDance]),
     AuthModule,
+    StudentModule,
   ],
 })
 export class GroupModule {}

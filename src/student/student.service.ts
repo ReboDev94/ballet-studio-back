@@ -14,7 +14,7 @@ import { School } from '../school/entities/school.entity';
 import { FilesService } from '../files/files.service';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
-import { SearcStudenthDto } from './dto/search-student.dto';
+import { SearchStudenthDto } from './dto/search-student.dto';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
 
 @Injectable()
@@ -169,7 +169,7 @@ export class StudentService {
     };
   }
 
-  async findAll(searchStudentDto: SearcStudenthDto, { id }: School) {
+  async findAll(searchStudentDto: SearchStudenthDto, { id }: School) {
     const { take, skip, page, name } = searchStudentDto;
     const pageOptionsDto: PageOptionsDto = { take, skip, page };
 
@@ -193,6 +193,17 @@ export class StudentService {
       success: true,
       students: { ...data },
     };
+  }
+
+  async getEntitiesByIds(studentIds: number[], { id: schoolId }: School) {
+    const queryBuilder = this.studentRepository.createQueryBuilder('student');
+    const students = await queryBuilder
+      .where('student.id IN (:...studentIds) and "schoolId" = :schoolId', {
+        studentIds,
+        schoolId,
+      })
+      .getMany();
+    return students;
   }
 
   async getUrlSignedAvatar(studentId: number, avatarName: string | null) {

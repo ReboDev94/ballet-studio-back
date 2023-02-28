@@ -15,5 +15,6 @@ import { FilesModule } from '../files/files.module';
     AuthModule,
     FilesModule,
   ],
+  exports: [StudentService],
 })
 export class StudentModule {}

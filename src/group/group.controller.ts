@@ -18,6 +18,7 @@ import { Auth } from '../auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { SearchGroupDto } from './dto/search-group';
 import { AddStudentsGroup } from './dto/add-students-group.dto';
+import { SearchStudenthDto } from '../student/dto/search-student.dto';
 
 @Auth(ValidRoles.admin)
 @Controller('group')
@@ -68,9 +69,17 @@ export class GroupController {
   @Post(':id/add-students')
   addStudents(
     @GetUser('school') school: School,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) groupId: number,
     @Body() addStudentsGroupDto: AddStudentsGroup,
   ) {
-    return this.groupService.addStudents(id, addStudentsGroupDto, school);
+    return this.groupService.addStudents(groupId, addStudentsGroupDto, school);
+  }
+
+  @Get(':id/all-students')
+  allStudentsByGroup(
+    @Param('id', ParseIntPipe) groupId: number,
+    @Query() searchStudentDto: SearchStudenthDto,
+  ) {
+    return this.groupService.allStudentsByGroup(groupId, searchStudentDto);
   }
 }

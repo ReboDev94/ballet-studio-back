@@ -19,6 +19,7 @@ import { PageDto } from '../common/dto/page.dto';
 import { AddStudentsGroup } from './dto/add-students-group.dto';
 import { StudentService } from '../student/student.service';
 import { GroupStudents } from './entities/group-students.entity';
+import { SearchStudenthDto } from '../student/dto/search-student.dto';
 
 @Injectable()
 export class GroupService {
@@ -122,6 +123,39 @@ export class GroupService {
     }
   }
 
+  async allStudentsByGroup(
+    groupId: number,
+    searchStudentDto: SearchStudenthDto,
+  ) {
+    const { order, page, take, skip, name } = searchStudentDto;
+    const pageOptionsDto: PageOptionsDto = { take, skip, page };
+
+    const query = 'groupStudents.groupId = :groupId';
+
+    const conditions = {
+      groupId,
+    };
+
+    const queryBuilder = this.groupStudentsRepository
+      .createQueryBuilder('groupStudents')
+      .where(query, conditions)
+      .leftJoinAndSelect('groupStudents.student', 'student')
+      .andWhere('student.name like :name', {
+        name: `${name ? name.toLowerCase() : ''}%`,
+      })
+      .orderBy('groupStudents.id', order);
+
+    const itemCount = await queryBuilder.getCount();
+    const groupStudents = await queryBuilder.getMany();
+
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+    const data = new PageDto(groupStudents, pageMetaDto);
+    return {
+      success: true,
+      students: { ...data },
+    };
+  }
+
   async findStudentGroupAlthoughItWasRemoved(
     studentId: number,
     groupId: number,
@@ -171,9 +205,9 @@ export class GroupService {
       }
 
       await this.groupStudentsRepository.save(groupStudents);
-      /* TODO: RETURN ALL STUDENTS FOR GROUP */
       return {
         success: true,
+        message: 'students are now part of the group',
       };
     } catch (error) {
       this.handleDBException(error);

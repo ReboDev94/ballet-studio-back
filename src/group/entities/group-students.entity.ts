@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Group } from './group.entity';
 import { Student } from '../../student/entities/student.entity';
-import { AttenDance } from './attendance.entity';
+import { RollCall } from '../../roll-call/entities/rollCall.entity';
 
 @Entity()
 @Index(['group', 'student'], { unique: true })
@@ -24,8 +24,8 @@ export class GroupStudents {
   @ManyToOne(() => Student, (student) => student.groups, { nullable: false })
   student: Student;
 
-  @OneToMany(() => AttenDance, (attendance) => attendance.groupStudent)
-  attendance: AttenDance[];
+  @OneToMany(() => RollCall, (rollCall) => rollCall.groupStudent)
+  rollCall: RollCall[];
 
   @DeleteDateColumn()
   deletedAt: Date;

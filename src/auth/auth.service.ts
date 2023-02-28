@@ -153,12 +153,8 @@ export class AuthService {
     }
   }
 
-  async deleteUser(id: number, { id: schoolId }: School) {
-    const dbUser = await this.userRepository.findOneBy({
-      id,
-      school: { id: schoolId },
-    });
-
+  async deleteUser(id: number) {
+    const dbUser = await this.userRepository.findOneBy({ id });
     if (!dbUser) throw new NotFoundException('User not found');
     try {
       await this.userRepository.softDelete({ id });
@@ -168,15 +164,8 @@ export class AuthService {
     }
   }
 
-  async updateStatusUser(
-    id: number,
-    updateStatusUser: UpdateStatusUserDto,
-    { id: schoolId }: School,
-  ) {
-    const dbUser = await this.userRepository.findOneBy({
-      id,
-      school: { id: schoolId },
-    });
+  async updateStatusUser(id: number, updateStatusUser: UpdateStatusUserDto) {
+    const dbUser = await this.userRepository.findOneBy({ id });
 
     if (!dbUser) throw new NotFoundException('user not found');
     const { status } = updateStatusUser;

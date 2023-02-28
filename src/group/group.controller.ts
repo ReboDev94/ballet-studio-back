@@ -19,6 +19,8 @@ import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { SearchGroupDto } from './dto/search-group';
 import { AddStudentsGroup } from './dto/add-students-group.dto';
 import { SearchStudenthDto } from '../student/dto/search-student.dto';
+import { UseGuards } from '@nestjs/common';
+import { GroupBelongsSchoolGuard } from './guards/group-belongs-school.guard';
 
 @Auth(ValidRoles.admin)
 @Controller('group')
@@ -33,21 +35,20 @@ export class GroupController {
     return this.groupService.create(createGroupDto, school);
   }
 
-  @Patch(':id')
+  @Patch(':groupId')
+  @UseGuards(GroupBelongsSchoolGuard)
   update(
     @GetUser('school') school: School,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('groupId', ParseIntPipe) groupId: number,
     @Body() updateGroupDto: UpdateGroupDto,
   ) {
-    return this.groupService.update(id, updateGroupDto, school);
+    return this.groupService.update(groupId, updateGroupDto, school);
   }
 
-  @Get(':id')
-  findOne(
-    @GetUser('school') school: School,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.groupService.findOne(id, school);
+  @Get(':groupId')
+  @UseGuards(GroupBelongsSchoolGuard)
+  findOne(@Param('groupId', ParseIntPipe) groupId: number) {
+    return this.groupService.findOne(groupId);
   }
 
   @Get()
@@ -58,26 +59,26 @@ export class GroupController {
     return this.groupService.findAll(school, searchGroupDto);
   }
 
-  @Delete(':id')
-  remove(
-    @GetUser('school') school: School,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.groupService.remove(id, school);
+  @Delete(':groupId')
+  @UseGuards(GroupBelongsSchoolGuard)
+  remove(@Param('groupId', ParseIntPipe) groupId: number) {
+    return this.groupService.remove(groupId);
   }
 
-  @Post(':id/add-students')
+  @Post(':groupId/add-students')
+  @UseGuards(GroupBelongsSchoolGuard)
   addStudents(
     @GetUser('school') school: School,
-    @Param('id', ParseIntPipe) groupId: number,
+    @Param('groupId', ParseIntPipe) groupId: number,
     @Body() addStudentsGroupDto: AddStudentsGroup,
   ) {
     return this.groupService.addStudents(groupId, addStudentsGroupDto, school);
   }
 
-  @Get(':id/all-students')
+  @Get(':groupId/all-students')
+  @UseGuards(GroupBelongsSchoolGuard)
   allStudentsByGroup(
-    @Param('id', ParseIntPipe) groupId: number,
+    @Param('groupId', ParseIntPipe) groupId: number,
     @Query() searchStudentDto: SearchStudenthDto,
   ) {
     return this.groupService.allStudentsByGroup(groupId, searchStudentDto);

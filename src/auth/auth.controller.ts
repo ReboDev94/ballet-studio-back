@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
@@ -19,6 +20,7 @@ import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces/valid-roles';
 import { School } from '../school/entities/school.entity';
 import { SearchUserDto } from './dto/search-user.dto';
+import { UserBelongsSchoolGuard } from './guards/user-belongs-school.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -50,20 +52,21 @@ export class AuthController {
     return this.authService.createUser(createUserDto, school);
   }
 
-  @Delete('user/:id')
+  @Delete('user/:userId')
+  @UseGuards(UserBelongsSchoolGuard)
   @Auth(ValidRoles.admin)
-  deleteUser(@GetUser('school') school: School, @Param('id') id: number) {
-    return this.authService.deleteUser(id, school);
+  deleteUser(@Param('userId') userId: number) {
+    return this.authService.deleteUser(userId);
   }
 
-  @Patch('update-status-user/:id')
+  @Patch('update-status-user/:userId')
   @Auth(ValidRoles.admin)
+  @UseGuards(UserBelongsSchoolGuard)
   updateStatusUser(
-    @GetUser('school') school: School,
-    @Param('id') id: number,
+    @Param('userId') userId: number,
     @Body() updateStatusUser: UpdateStatusUserDto,
   ) {
-    return this.authService.updateStatusUser(id, updateStatusUser, school);
+    return this.authService.updateStatusUser(userId, updateStatusUser);
   }
 
   @Patch('update-profile')

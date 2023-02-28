@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -21,6 +22,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilterImage } from 'src/files/helpers';
 import { Get } from '@nestjs/common';
 import { SearchStudenthDto } from './dto/search-student.dto';
+import { StudentBelongSchoolGuard } from './guards/student-belong-school.guard';
 
 @Auth(ValidRoles.admin)
 @Controller('student')
@@ -42,7 +44,8 @@ export class StudentController {
     return this.studentService.create(file, createStudentDto, school);
   }
 
-  @Patch(':id')
+  @Patch(':studentId')
+  @UseGuards(StudentBelongSchoolGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 2097152 },
@@ -50,20 +53,17 @@ export class StudentController {
     }),
   )
   update(
-    @GetUser('school') school: School,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('studentId', ParseIntPipe) studentId: number,
     @UploadedFile() file: Express.Multer.File,
     @Body() updateStudentDto: UpdateStudentDto,
   ) {
-    return this.studentService.update(id, file, updateStudentDto, school);
+    return this.studentService.update(studentId, file, updateStudentDto);
   }
 
-  @Delete(':id')
-  remove(
-    @GetUser('school') school: School,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.studentService.remove(id, school);
+  @Delete(':studentId')
+  @UseGuards(StudentBelongSchoolGuard)
+  remove(@Param('studentId', ParseIntPipe) studentId: number) {
+    return this.studentService.remove(studentId);
   }
 
   @Get()

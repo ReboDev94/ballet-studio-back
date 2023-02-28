@@ -68,7 +68,6 @@ export class GroupService {
         id,
         ...updateGroupDto,
         teacher,
-        school: { id: schoolId },
       });
 
       await this.groupRepository.save(preGroup);
@@ -82,9 +81,9 @@ export class GroupService {
     }
   }
 
-  async findOne(id: number, { id: schoolId }: School) {
+  async findOne(id: number) {
     const dbGroup = await this.groupRepository.findOne({
-      where: { id, school: { id: schoolId } },
+      where: { id },
       relations: { teacher: true },
     });
     if (!dbGroup) throw new NotFoundException('group not found');
@@ -113,8 +112,8 @@ export class GroupService {
     };
   }
 
-  async remove(id: number, school: School) {
-    await this.findOne(id, school);
+  async remove(id: number) {
+    await this.findOne(id);
     try {
       await this.groupRepository.softDelete({ id });
       return { success: true, message: 'group has been deleted' };

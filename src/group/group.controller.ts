@@ -17,7 +17,7 @@ import { School } from '../school/entities/school.entity';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { SearchGroupDto } from './dto/search-group';
-import { AddStudentsGroup } from './dto/add-students-group.dto';
+import { AddOrRemoveStudentsGroup } from './dto/add-remove-students-group.dto';
 import { SearchStudenthDto } from '../student/dto/search-student.dto';
 import { UseGuards } from '@nestjs/common';
 import { GroupBelongsSchoolGuard } from './guards/group-belongs-school.guard';
@@ -70,9 +70,18 @@ export class GroupController {
   addStudents(
     @GetUser('school') school: School,
     @Param('groupId', ParseIntPipe) groupId: number,
-    @Body() addStudentsGroupDto: AddStudentsGroup,
+    @Body() addStudentsGroupDto: AddOrRemoveStudentsGroup,
   ) {
     return this.groupService.addStudents(groupId, addStudentsGroupDto, school);
+  }
+
+  @Post(':groupId/remove-students')
+  @UseGuards(GroupBelongsSchoolGuard)
+  removeStudents(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Body() addOrRemoveStudentsGroup: AddOrRemoveStudentsGroup,
+  ) {
+    return this.groupService.removeStudents(groupId, addOrRemoveStudentsGroup);
   }
 
   @Get(':groupId/all-students')

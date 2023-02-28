@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { DataSource, FindManyOptions, Repository } from 'typeorm';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -16,7 +16,7 @@ import { SearchGroupDto } from './dto/search-group';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
-import { AddStudentsGroup } from './dto/add-students-group.dto';
+import { AddOrRemoveStudentsGroup } from './dto/add-remove-students-group.dto';
 import { StudentService } from '../student/student.service';
 import { GroupStudents } from './entities/group-students.entity';
 import { SearchStudenthDto } from '../student/dto/search-student.dto';
@@ -32,6 +32,7 @@ export class GroupService {
     private readonly groupStudentsRepository: Repository<GroupStudents>,
     private readonly authService: AuthService,
     private readonly studentService: StudentService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createGroupDto: CreateGroupDto, school: School) {
@@ -172,7 +173,7 @@ export class GroupService {
 
   async addStudents(
     groupId: number,
-    addStudentsGroupDto: AddStudentsGroup,
+    addStudentsGroupDto: AddOrRemoveStudentsGroup,
     school: School,
   ) {
     const { students } = addStudentsGroupDto;
@@ -207,6 +208,32 @@ export class GroupService {
       return {
         success: true,
         message: 'students are now part of the group',
+      };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async removeStudents(
+    groupId: number,
+    addOrRemoveStudentsGroup: AddOrRemoveStudentsGroup,
+  ) {
+    const { students } = addOrRemoveStudentsGroup;
+
+    try {
+      await this.dataSource
+        .createQueryBuilder()
+        .update(GroupStudents)
+        .set({ deletedAt: new Date() })
+        .where('studentId IN (:...studentsIds) and groupId = :groupId', {
+          studentsIds: students,
+          groupId,
+        })
+        .execute();
+
+      return {
+        success: true,
+        message: 'students have been removed',
       };
     } catch (error) {
       this.handleDBException(error);

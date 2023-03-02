@@ -5,6 +5,7 @@ import {
   ValidateNested,
   IsDateString,
   IsEnum,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SchedulesDto } from './schedules.dto';
@@ -22,7 +23,8 @@ export class CreateGroupDto {
   schedules: SchedulesDto[];
 
   @IsDateString()
-  startDate: Date;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  startDate: string;
 
   @IsInt()
   schoolCycle: number;

@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsOptional,
   IsString,
+  Matches,
   MinLength,
   ValidateIf,
 } from 'class-validator';
@@ -16,6 +17,7 @@ export class CreateStudentDto {
   name: string;
 
   @IsDateString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
   dateOfBirth: string;
 
   @IsString()

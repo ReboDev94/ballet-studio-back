@@ -24,7 +24,7 @@ export class RollCall {
   groupStudent: GroupStudents;
 
   @Column('date', { nullable: false })
-  date: Date;
+  date: string;
 
   @Column('bool', { default: false })
   attended: boolean;

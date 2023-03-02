@@ -18,7 +18,10 @@ export class GroupStudents {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @ManyToOne(() => Group, (group) => group.students, { nullable: false })
+  @ManyToOne(() => Group, (group) => group.students, {
+    nullable: false,
+    eager: true,
+  })
   group: Group;
 
   @ManyToOne(() => Student, (student) => student.groups, { nullable: false })

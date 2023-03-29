@@ -4,6 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { SeedModule } from './seed/seed.module';
 import { SchoolModule } from './school/school.module';
+import { CommonModule } from './common/common.module';
+import { FilesModule } from './files/files.module';
+import { StudentModule } from './student/student.module';
+import { GroupModule } from './group/group.module';
+import { RollCallModule } from './roll-call/roll-call.module';
 
 @Module({
   imports: [
@@ -21,6 +26,11 @@ import { SchoolModule } from './school/school.module';
     AuthModule,
     SeedModule,
     SchoolModule,
+    CommonModule,
+    FilesModule,
+    StudentModule,
+    GroupModule,
+    RollCallModule,
   ],
   controllers: [],
   providers: [],

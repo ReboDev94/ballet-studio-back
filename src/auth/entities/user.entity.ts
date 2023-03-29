@@ -8,10 +8,16 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  BeforeInsert,
+  BeforeUpdate,
+  AfterLoad,
+  OneToMany,
 } from 'typeorm';
 
 import { Role } from './role.entity';
 import { School } from '../../school/entities/school.entity';
+import { ucwords } from 'src/common/utils';
+import { Group } from '../../group/entities/group.entity';
 
 @Entity()
 export class User {
@@ -22,16 +28,13 @@ export class User {
   name: string;
 
   @Column('text', { unique: true })
-  userName: string;
+  email: string;
 
   @Column('text', { select: false })
   password: string;
 
   @Column('text', { nullable: true })
   phone: string;
-
-  @Column('text', { nullable: true })
-  email: string;
 
   @Column('bool', { default: false })
   isOwner: boolean;
@@ -48,6 +51,9 @@ export class User {
   })
   school: School;
 
+  @OneToMany(() => Group, (group) => group.teacher)
+  groups: Group[];
+
   @DeleteDateColumn()
   deletedAt: Date;
 
@@ -63,4 +69,20 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updatedAt: Date;
+
+  @BeforeInsert()
+  checkFieldBeforeInsert() {
+    this.email = this.email.toLowerCase().trim();
+    this.name = this.name.toLowerCase().trim();
+  }
+
+  @BeforeUpdate()
+  checkFieldBeforeUpdate() {
+    this.checkFieldBeforeInsert();
+  }
+
+  @AfterLoad()
+  checkFieldAfterLoad() {
+    this.name = ucwords(this.name);
+  }
 }

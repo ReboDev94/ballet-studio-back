@@ -1,10 +1,10 @@
 {
   "name": "ballet-studio-back",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Ballet Studio - Backend",
+  "author": "Rafael de Jesus Rebolledo Hernandez <https://github.com/ReboDev94>",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "ISC",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -84,5 +84,9 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "engines": {
+    "node": ">=18.13.0",
+    "npm": ">=8.19.3"
   }
 }

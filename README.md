@@ -1,30 +1,26 @@
-## Description
+# Ballet studio - Backend
 
-Ballet studio
+## Getting started
 
-## Installation
+1.-Install dependencies
 
-1.-Instalar dependencias del proyecto
-
-```bash
+```sh
 $ npm install
 ```
 
-2.- Levantar la base de datos
+2.- up database
 
-```bash
+```sh
 $ docker-compose up -d
 ```
 
-3.- Run seed
+3.- Run seed - Postman
 
-```bash
 http://localhost:3000/api/seed/execute-seed
-```
 
 ## Running the app
 
-```bash
+```sh
 # development
 $ npm run start
 
@@ -34,3 +30,7 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## Custom credentials
+
+view file 'seed.ts'

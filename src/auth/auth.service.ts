@@ -56,6 +56,7 @@ export class AuthService {
         isActive: true,
         roles: true,
       },
+      relations: { school: true },
     });
     if (!user) throw new UnauthorizedException('credentials are not valid');
     if (!user.isActive)
@@ -65,9 +66,12 @@ export class AuthService {
       throw new UnauthorizedException('Credentials are not valid');
 
     delete user.password;
+    const hasSchool = !!user.school;
+    delete user.school;
+
     return {
       success: true,
-      ...user,
+      user: { ...user, hasSchool },
       token: this.getJwt({ id: user.id }),
     };
   }
@@ -117,9 +121,15 @@ export class AuthService {
   }
 
   async getUser(user: User) {
+    const hasSchool = !!user.school;
+    delete user.school;
+
     return {
       success: true,
-      user,
+      user: {
+        ...user,
+        hasSchool,
+      },
     };
   }
 

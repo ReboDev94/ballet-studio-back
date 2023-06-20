@@ -39,7 +39,6 @@ export class AuthController {
   @Get('user')
   @Auth()
   getUser(@GetUser() user: User) {
-    delete user.school;
     return this.authService.getUser(user);
   }
 

@@ -47,7 +47,7 @@ export class User {
   roles: Role[];
 
   @ManyToOne(() => School, (school) => school.users, {
-    nullable: false,
+    nullable: true,
   })
   school: School;
 

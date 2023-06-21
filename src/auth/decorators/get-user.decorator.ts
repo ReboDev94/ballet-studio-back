@@ -4,14 +4,17 @@ import {
   UnauthorizedException,
   createParamDecorator,
 } from '@nestjs/common';
+import { User } from '../entities';
+
+type userType = keyof User;
 
 export const GetUser = createParamDecorator(
-  (data: string, ctx: ExecutionContext) => {
+  (data: userType | 'get-user' = 'get-user', ctx: ExecutionContext) => {
     const req = ctx.switchToHttp().getRequest();
-    const user = req.user;
+    const user = req.user as User;
     if (!user) throw new InternalServerErrorException('user not found');
-    if (!user.school)
+    if (data !== 'get-user' && !user.school)
       throw new UnauthorizedException('user doesn´t have school');
-    return data ? user[data] : user;
+    return data !== 'get-user' ? user[data] : user;
   },
 );

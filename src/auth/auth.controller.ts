@@ -79,11 +79,11 @@ export class AuthController {
 
   @Get('users')
   @Auth(ValidRoles.admin)
-  getAllUsers(@GetUser() user: User, @Query() searchUserDto: SearchUserDto) {
-    const {
-      id: userId,
-      school: { id: schoolId },
-    } = user;
-    return this.authService.getAllUsers(userId, schoolId, searchUserDto);
+  getAllUsers(
+    @GetUser('id') id: number,
+    @GetUser('school') school: School,
+    @Query() searchUserDto: SearchUserDto,
+  ) {
+    return this.authService.getAllUsers(id, school.id, searchUserDto);
   }
 }

@@ -77,7 +77,7 @@ export class AuthService {
   }
 
   async register(createAccountDto: RegisterUserDto) {
-    const { email, password, name, nameSchool } = createAccountDto;
+    const { email, password } = createAccountDto;
 
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail) throw new BadRequestException('email alredy exits');
@@ -91,21 +91,15 @@ export class AuthService {
         slug: this.DEFAULT_ROLE,
       });
 
-      const school = this.schoolRepository.create({
-        name: nameSchool,
-        directorName: name,
-      });
-
       const user = this.userRepository.create({
-        name,
         email,
         password: bcrypt.hashSync(password, 10),
         isOwner: true,
         roles: [role],
       });
 
-      const dbSchool = await queryRunner.manager.save(school);
-      user.school = dbSchool;
+      // const dbSchool = await queryRunner.manager.save(school);
+      // user.school = dbSchool;
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
       return {

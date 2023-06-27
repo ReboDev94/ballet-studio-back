@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities';
@@ -20,6 +21,9 @@ export class GroupBelongsSchoolGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const user = req.user as User;
     const groupId = req.params['groupId'] as number;
+
+    if (!user?.school)
+      throw new UnauthorizedException('user doesn´t have school');
 
     const dbGroup = await this.groupRepository.findOne({
       where: { id: groupId, school: { id: user.school.id } },

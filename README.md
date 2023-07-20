@@ -34,3 +34,14 @@ $ npm run start:prod
 ## Custom credentials
 
 view file 'seed.ts'
+
+## Dockerizar
+
+Production
+```sh
+$ docker build --no-cache -t ballet-studio .
+#Run container with env development
+$ docker run --env-file .env.development -p 3000:3000 ballet-studio
+#Run container with env production
+$ docker run --env-file .env.production -p 80:3000 ballet-studio
+```

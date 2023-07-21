@@ -35,6 +35,18 @@ $ npm run start:prod
 
 view file 'seed.ts'
 
+## use db fly
+
+```sh
+$ flyctl proxy 5432 -a ballet-studio
+```
+
+## fly deploy
+
+```sh
+$ flyctl deploy
+```
+
 ## Dockerizar
 
 Production

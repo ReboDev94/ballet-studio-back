@@ -39,18 +39,6 @@ http://localhost:3000/api/seed/execute-seed
 
 view file 'seed.ts'
 
-## use db fly
-
-```sh
-$ flyctl proxy 5432 -a ballet-studio
-```
-
-## fly deploy
-
-```sh
-$ flyctl deploy
-```
-
 ## Dockerizar
 
 Production

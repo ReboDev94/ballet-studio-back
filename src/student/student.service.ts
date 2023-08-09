@@ -38,11 +38,9 @@ export class StudentService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
     try {
       const {
         name,
-        isOlder,
         dateOfBirth,
         address,
         dieseses,
@@ -56,21 +54,18 @@ export class StudentService {
         name,
         dateOfBirth,
         address,
-        isOlder,
         dieseses,
         school,
       });
-
       const dbStudent = await queryRunner.manager.save(student);
 
       const tutor = this.tutorRepository.create({
-        name: isOlder ? name : tutorName,
+        name: tutorName ? tutorName : name,
         email: tutorEmail,
         phone: tutorPhone,
         celPhone: tutorCelPhone,
         student: dbStudent,
       });
-
       await queryRunner.manager.save(tutor);
       await queryRunner.commitTransaction();
 
@@ -127,7 +122,7 @@ export class StudentService {
 
       const tutor = await this.tutorRepository.preload({
         ...preTutor,
-        name: student.isOlder ? student.name : tutorName,
+        name: tutorName ? tutorName : student.name,
         email: tutorEmail,
         celPhone: tutorCelPhone,
         phone: tutorPhone,

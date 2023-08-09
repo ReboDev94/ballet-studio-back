@@ -1,7 +1,5 @@
-import { Transform } from 'class-transformer';
 import {
   IsArray,
-  IsBoolean,
   IsDateString,
   IsEmail,
   IsOptional,
@@ -10,6 +8,7 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
+import { IsOlder } from 'src/common/utils';
 
 export class CreateStudentDto {
   @IsString()
@@ -23,18 +22,15 @@ export class CreateStudentDto {
   @IsString()
   address: string;
 
-  @IsBoolean()
-  @Transform(
-    ({ value }) => [true, 'enabled', 'true', 1, '1'].indexOf(value) > -1,
-  )
-  isOlder: boolean;
-
   @IsString({ each: true })
   @IsArray()
   @IsOptional()
   dieseses?: string[];
 
-  @ValidateIf((o) => !o.isOlder)
+  @ValidateIf((o) => {
+    if (!o.dateOfBirth) return true;
+    return !IsOlder(o.dateOfBirth);
+  })
   @IsString()
   @MinLength(1)
   tutorName?: string;

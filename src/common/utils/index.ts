@@ -1,2 +1,3 @@
-export { ucwords } from './uc-words';
-export { regexPassword } from './regex-password';
+export * from './uc-words';
+export * from './regex-password';
+export * from './is-older';

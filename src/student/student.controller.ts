@@ -14,7 +14,6 @@ import {
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { Auth } from '../auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { School } from '../school/entities/school.entity';
@@ -23,8 +22,9 @@ import { fileFilterImage } from 'src/files/helpers';
 import { Get } from '@nestjs/common';
 import { SearchStudenthDto } from './dto/search-student.dto';
 import { StudentBelongSchoolGuard } from './guards/student-belong-school.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
-@Auth(ValidRoles.admin)
+@Auth([ValidRoles.admin])
 @Controller('student')
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}

@@ -11,11 +11,11 @@ import { UpdateSchoolDto } from './dto/update-school.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { School } from './entities/school.entity';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
-import { Auth } from '../auth/decorators/auth.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilterImage } from 'src/files/helpers';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
-@Auth(ValidRoles.admin)
+@Auth([ValidRoles.admin])
 @Controller('school')
 export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}

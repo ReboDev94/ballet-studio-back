@@ -10,15 +10,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { RollCallService } from './roll-call.service';
-import { Auth } from '../auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { RollCallByNameDto } from './dto/roll-call-by-name.dto';
 import { GroupBelongsSchoolGuard } from 'src/group/guards/group-belongs-school.guard';
 import { ChangeAttendedDto } from './dto/change-attended.dto';
 import { RollCallBelongsGroupGuard } from './guards/roll-call-belongs-group.guard';
 import { AddStudentsToRollCallDto } from './dto/add-students-roll-call.dto';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
-@Auth(ValidRoles.admin, ValidRoles.teacher)
+@Auth([ValidRoles.admin, ValidRoles.teacher])
 @Controller('roll-call')
 export class RollCallController {
   constructor(private readonly rollCallService: RollCallService) {}

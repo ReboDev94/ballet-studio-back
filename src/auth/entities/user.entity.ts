@@ -24,7 +24,7 @@ export class User {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   name: string;
 
   @Column('text', { unique: true })
@@ -47,7 +47,7 @@ export class User {
   roles: Role[];
 
   @ManyToOne(() => School, (school) => school.users, {
-    nullable: false,
+    nullable: true,
   })
   school: School;
 
@@ -73,7 +73,7 @@ export class User {
   @BeforeInsert()
   checkFieldBeforeInsert() {
     this.email = this.email.toLowerCase().trim();
-    this.name = this.name.toLowerCase().trim();
+    if (this.name) this.name = this.name.toLowerCase().trim();
   }
 
   @BeforeUpdate()

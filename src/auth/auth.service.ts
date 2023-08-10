@@ -56,6 +56,7 @@ export class AuthService {
         isActive: true,
         roles: true,
       },
+      relations: { school: true },
     });
     if (!user) throw new UnauthorizedException('credentials are not valid');
     if (!user.isActive)
@@ -65,15 +66,18 @@ export class AuthService {
       throw new UnauthorizedException('Credentials are not valid');
 
     delete user.password;
+    const hasSchool = !!user.school;
+    delete user.school;
+
     return {
       success: true,
-      ...user,
+      user: { ...user, hasSchool },
       token: this.getJwt({ id: user.id }),
     };
   }
 
   async register(createAccountDto: RegisterUserDto) {
-    const { email, password, name, nameSchool } = createAccountDto;
+    const { email, password } = createAccountDto;
 
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail) throw new BadRequestException('email alredy exits');
@@ -87,21 +91,15 @@ export class AuthService {
         slug: this.DEFAULT_ROLE,
       });
 
-      const school = this.schoolRepository.create({
-        name: nameSchool,
-        directorName: name,
-      });
-
       const user = this.userRepository.create({
-        name,
         email,
         password: bcrypt.hashSync(password, 10),
         isOwner: true,
         roles: [role],
       });
 
-      const dbSchool = await queryRunner.manager.save(school);
-      user.school = dbSchool;
+      // const dbSchool = await queryRunner.manager.save(school);
+      // user.school = dbSchool;
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
       return {
@@ -117,9 +115,15 @@ export class AuthService {
   }
 
   async getUser(user: User) {
+    const hasSchool = !!user.school;
+    delete user.school;
+
     return {
       success: true,
-      user,
+      user: {
+        ...user,
+        hasSchool,
+      },
     };
   }
 

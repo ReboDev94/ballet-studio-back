@@ -4,8 +4,8 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
@@ -21,6 +21,9 @@ export class RollCallBelongsGroupGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const user = req.user as User;
     const rollCallId = req.params['rollCallId'];
+
+    if (!user?.school)
+      throw new UnauthorizedException('user doesn´t have school');
 
     const queryBuilder = this.rollCallRepository
       .createQueryBuilder('rollCall')

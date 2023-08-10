@@ -7,13 +7,11 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto, UpdateStatusUserDto } from './dto';
 import { RegisterUserDto } from './dto';
-import { Auth } from './decorators/auth.decorator';
 import { GetUser } from './decorators/get-user.decorator';
 import { UpdateSchoolDto } from '../school/dto/update-school.dto';
 import { User } from './entities/user.entity';
@@ -21,6 +19,7 @@ import { ValidRoles } from './interfaces/valid-roles';
 import { School } from '../school/entities/school.entity';
 import { SearchUserDto } from './dto/search-user.dto';
 import { UserBelongsSchoolGuard } from './guards/user-belongs-school.guard';
+import { Auth } from './decorators/auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -37,14 +36,13 @@ export class AuthController {
   }
 
   @Get('user')
-  @Auth()
+  @Auth([])
   getUser(@GetUser() user: User) {
-    delete user.school;
     return this.authService.getUser(user);
   }
 
   @Post('user')
-  @Auth(ValidRoles.admin)
+  @Auth([ValidRoles.admin])
   createUser(
     @GetUser('school') school: School,
     @Body() createUserDto: CreateUserDto,
@@ -53,15 +51,13 @@ export class AuthController {
   }
 
   @Delete('user/:userId')
-  @UseGuards(UserBelongsSchoolGuard)
-  @Auth(ValidRoles.admin)
+  @Auth([ValidRoles.admin], { guards: [UserBelongsSchoolGuard] })
   deleteUser(@Param('userId') userId: number) {
     return this.authService.deleteUser(userId);
   }
 
   @Patch('update-status-user/:userId')
-  @Auth(ValidRoles.admin)
-  @UseGuards(UserBelongsSchoolGuard)
+  @Auth([ValidRoles.admin], { guards: [UserBelongsSchoolGuard] })
   updateStatusUser(
     @Param('userId') userId: number,
     @Body() updateStatusUser: UpdateStatusUserDto,
@@ -70,7 +66,7 @@ export class AuthController {
   }
 
   @Patch('update-profile')
-  @Auth()
+  @Auth([])
   updateProfile(
     @GetUser('id') id: number,
     @Body() updateUserDto: UpdateSchoolDto,
@@ -79,12 +75,12 @@ export class AuthController {
   }
 
   @Get('users')
-  @Auth(ValidRoles.admin)
-  getAllUsers(@GetUser() user: User, @Query() searchUserDto: SearchUserDto) {
-    const {
-      id: userId,
-      school: { id: schoolId },
-    } = user;
-    return this.authService.getAllUsers(userId, schoolId, searchUserDto);
+  @Auth([ValidRoles.admin])
+  getAllUsers(
+    @GetUser('id') id: number,
+    @GetUser('school') school: School,
+    @Query() searchUserDto: SearchUserDto,
+  ) {
+    return this.authService.getAllUsers(id, school.id, searchUserDto);
   }
 }

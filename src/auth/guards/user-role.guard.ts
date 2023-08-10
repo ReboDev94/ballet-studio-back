@@ -8,8 +8,10 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 
-import { META_ROLES } from '../decorators/role-protected.decorator';
+// import { META_ROLES } from '../decorators/role-protected.decorator';
 import { User } from '../entities';
+import { METADATA_LABEL } from '../constants';
+import { IMetadata } from '../interfaces/auth-decorator';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -17,10 +19,13 @@ export class UserRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const validRoles: string[] = this.reflector.get(
-      META_ROLES,
+    const metadata: IMetadata = this.reflector.get(
+      METADATA_LABEL,
       context.getHandler(),
     );
+
+    const validRoles: string[] = metadata.roles;
+
     if (!validRoles || validRoles.length === 0) return true;
 
     const req = context.switchToHttp().getRequest();

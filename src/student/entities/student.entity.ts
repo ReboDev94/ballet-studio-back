@@ -34,9 +34,6 @@ export class Student {
   @Column('text', { nullable: true })
   avatar: string;
 
-  @Column('bool', { default: false })
-  isOlder: boolean;
-
   @Column('text', { array: true, default: [] })
   dieseses: string[];
 

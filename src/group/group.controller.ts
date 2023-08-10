@@ -14,15 +14,15 @@ import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { School } from '../school/entities/school.entity';
-import { Auth } from '../auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { SearchGroupDto } from './dto/search-group';
 import { AddOrRemoveStudentsGroup } from './dto/add-remove-students-group.dto';
 import { SearchStudenthDto } from '../student/dto/search-student.dto';
 import { UseGuards } from '@nestjs/common';
 import { GroupBelongsSchoolGuard } from './guards/group-belongs-school.guard';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
-@Auth(ValidRoles.admin)
+@Auth([ValidRoles.admin])
 @Controller('group')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}

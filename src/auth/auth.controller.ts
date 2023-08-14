@@ -18,7 +18,7 @@ import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces/valid-roles';
 import { School } from '../school/entities/school.entity';
 import { SearchUserDto } from './dto/search-user.dto';
-import { UserBelongsSchoolGuard } from './guards/user-belongs-school.guard';
+import { UserHasSchoolGuard } from './guards/user-has-school.guard';
 import { Auth } from './decorators/auth.decorator';
 
 @Controller('auth')
@@ -42,7 +42,7 @@ export class AuthController {
   }
 
   @Post('user')
-  @Auth([ValidRoles.admin])
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   createUser(
     @GetUser('school') school: School,
     @Body() createUserDto: CreateUserDto,
@@ -51,13 +51,13 @@ export class AuthController {
   }
 
   @Delete('user/:userId')
-  @Auth([ValidRoles.admin], { guards: [UserBelongsSchoolGuard] })
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   deleteUser(@Param('userId') userId: number) {
     return this.authService.deleteUser(userId);
   }
 
   @Patch('update-status-user/:userId')
-  @Auth([ValidRoles.admin], { guards: [UserBelongsSchoolGuard] })
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   updateStatusUser(
     @Param('userId') userId: number,
     @Body() updateStatusUser: UpdateStatusUserDto,
@@ -75,7 +75,7 @@ export class AuthController {
   }
 
   @Get('users')
-  @Auth([ValidRoles.admin])
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   getAllUsers(
     @GetUser('id') id: number,
     @GetUser('school') school: School,

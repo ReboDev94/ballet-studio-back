@@ -7,16 +7,15 @@ import { GroupStudents } from './entities/group-students.entity';
 import { RollCall } from '../roll-call/entities/rollCall.entity';
 import { AuthModule } from '../auth/auth.module';
 import { StudentModule } from '../student/student.module';
-import { GroupBelongsSchoolGuard } from './guards/group-belongs-school.guard';
 
 @Module({
   controllers: [GroupController],
-  providers: [GroupService, GroupBelongsSchoolGuard],
+  providers: [GroupService],
   imports: [
     TypeOrmModule.forFeature([Group, GroupStudents, RollCall]),
     AuthModule,
     StudentModule,
   ],
-  exports: [TypeOrmModule, GroupBelongsSchoolGuard, GroupService],
+  exports: [TypeOrmModule, GroupService],
 })
 export class GroupModule {}

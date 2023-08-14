@@ -7,7 +7,7 @@ import {
 import { User } from '../entities';
 
 @Injectable()
-export class UserBelongsSchoolGuard implements CanActivate {
+export class UserHasSchoolGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
     const userReq = req.user as User;

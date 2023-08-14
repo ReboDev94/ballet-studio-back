@@ -19,7 +19,7 @@ export class UserRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const metadata: IMetadata = this.reflector.get(
+    const metadata = this.reflector.get<IMetadata>(
       METADATA_LABEL,
       context.getHandler(),
     );

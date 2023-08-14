@@ -8,7 +8,7 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
-import { IsOlder } from 'src/common/utils';
+import { IsOlder } from './../../common/utils/is-older';
 
 export class CreateStudentDto {
   @IsString()

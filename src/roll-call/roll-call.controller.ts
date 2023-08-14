@@ -12,7 +12,7 @@ import {
 import { RollCallService } from './roll-call.service';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { RollCallByNameDto } from './dto/roll-call-by-name.dto';
-import { GroupBelongsSchoolGuard } from 'src/group/guards/group-belongs-school.guard';
+// import { GroupBelongsSchoolGuard } from 'src/group/guards/group-belongs-school.guard';
 import { ChangeAttendedDto } from './dto/change-attended.dto';
 import { RollCallBelongsGroupGuard } from './guards/roll-call-belongs-group.guard';
 import { AddStudentsToRollCallDto } from './dto/add-students-roll-call.dto';
@@ -24,7 +24,7 @@ export class RollCallController {
   constructor(private readonly rollCallService: RollCallService) {}
 
   @Get('group/:groupId/check-exists')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   checkExistsRollCall(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
@@ -33,7 +33,7 @@ export class RollCallController {
   }
 
   @Delete('group/:groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   removeRollCallByDate(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
@@ -45,7 +45,7 @@ export class RollCallController {
   }
 
   @Post('group/:groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   create(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
@@ -54,13 +54,13 @@ export class RollCallController {
   }
 
   @Get('group/:groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   findAllByGroup(@Param('groupId', ParseIntPipe) groupId: number) {
     return this.rollCallService.findAllByGroup(groupId);
   }
 
   @Get('group/:groupId/by-date')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   findAllByGroupAndByDate(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
@@ -81,7 +81,7 @@ export class RollCallController {
   }
 
   @Get('group/:groupId/students-do-not-belongs-roll-call')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   findStudentsDoNotBelongsRollCall(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
@@ -93,7 +93,7 @@ export class RollCallController {
   }
 
   @Post('group/:groupId/add-students')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   addStudentsToRollCall(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() addStudentsToRollCallDto: AddStudentsToRollCallDto,

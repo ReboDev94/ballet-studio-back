@@ -19,9 +19,9 @@ import { SearchGroupDto } from './dto/search-group';
 import { AddOrRemoveStudentsGroup } from './dto/add-remove-students-group.dto';
 import { SearchStudenthDto } from '../student/dto/search-student.dto';
 import { UseGuards } from '@nestjs/common';
-import { GroupBelongsSchoolGuard } from './guards/group-belongs-school.guard';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 
+/* TODO: ARREGLAR VALIDACION PARA GroupBelongsSchoolGuard  */
 @Auth([ValidRoles.admin])
 @Controller('group')
 export class GroupController {
@@ -36,7 +36,7 @@ export class GroupController {
   }
 
   @Patch(':groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   update(
     @GetUser('school') school: School,
     @Param('groupId', ParseIntPipe) groupId: number,
@@ -46,7 +46,7 @@ export class GroupController {
   }
 
   @Get(':groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   findOne(@Param('groupId', ParseIntPipe) groupId: number) {
     return this.groupService.findOne(groupId);
   }
@@ -60,13 +60,13 @@ export class GroupController {
   }
 
   @Delete(':groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   remove(@Param('groupId', ParseIntPipe) groupId: number) {
     return this.groupService.remove(groupId);
   }
 
   @Post(':groupId/add-students')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   addStudents(
     @GetUser('school') school: School,
     @Param('groupId', ParseIntPipe) groupId: number,
@@ -76,7 +76,7 @@ export class GroupController {
   }
 
   @Post(':groupId/remove-students')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   removeStudents(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() addOrRemoveStudentsGroup: AddOrRemoveStudentsGroup,
@@ -85,7 +85,7 @@ export class GroupController {
   }
 
   @Get(':groupId/all-students')
-  @UseGuards(GroupBelongsSchoolGuard)
+  // @UseGuards(GroupBelongsSchoolGuard)
   allStudentsByGroup(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Query() searchStudentDto: SearchStudenthDto,

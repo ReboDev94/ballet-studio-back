@@ -14,13 +14,14 @@ import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilterImage } from 'src/files/helpers';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { UserHasSchoolGuard } from 'src/auth/guards/user-has-school.guard';
 
-@Auth([ValidRoles.admin])
 @Controller('school')
 export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
   @Patch()
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 2097152 },
@@ -36,6 +37,7 @@ export class SchoolController {
   }
 
   @Get()
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   findOne(@GetUser('school') school: School) {
     return this.schoolService.findOne(school);
   }

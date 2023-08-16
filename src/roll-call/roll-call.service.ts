@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { RollCallByNameDto } from './dto/roll-call-by-name.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RollCall } from './entities/rollCall.entity';
-import { GroupService } from '../group/group.service';
+// import { GroupService } from '../group/group.service';
 import { IListRollCall, IRollCall } from './interfaces/rollCall.interface';
 import { ChangeAttendedDto } from './dto/change-attended.dto';
 import { AddStudentsToRollCallDto } from './dto/add-students-roll-call.dto';
@@ -16,10 +16,10 @@ import { AddStudentsToRollCallDto } from './dto/add-students-roll-call.dto';
 @Injectable()
 export class RollCallService {
   private readonly logger = new Logger('RollCallService');
+  // private readonly groupService: GroupService,
   constructor(
     @InjectRepository(RollCall)
     private readonly rollCallRepository: Repository<RollCall>,
-    private readonly groupService: GroupService,
   ) {}
 
   async findRollCallByGroupAndDate(groupId: number, date?: string) {
@@ -77,7 +77,7 @@ export class RollCallService {
   }
 
   async create(groupId: number, rollCallByNameDto: RollCallByNameDto) {
-    const { date } = rollCallByNameDto;
+    /*  const { date } = rollCallByNameDto;
     const groupStudents = await this.groupService.findAllGroupStudentsByGroup(
       groupId,
     );
@@ -104,7 +104,7 @@ export class RollCallService {
       };
     } catch (error) {
       this.handleDBException(error);
-    }
+    } */
   }
 
   async findAllByGroup(groupId: number) {
@@ -201,7 +201,7 @@ export class RollCallService {
     groupId: number,
     rollCallByNameDto: RollCallByNameDto,
   ) {
-    const { date } = rollCallByNameDto;
+    /*  const { date } = rollCallByNameDto;
     const dbStudents = await this.groupService.findGroupStudentsNotOnRollCall(
       groupId,
       date,
@@ -210,14 +210,14 @@ export class RollCallService {
     return {
       success: true,
       students: dbStudents,
-    };
+    }; */
   }
 
   async addStudentsToRollCall(
     groupId: number,
     addStudentsToRollCallDto: AddStudentsToRollCallDto,
   ) {
-    const { date, groupStudentsIds } = addStudentsToRollCallDto;
+    /*   const { date, groupStudentsIds } = addStudentsToRollCallDto;
 
     const dbGroupStudents = await this.groupService.findAllGroupStudentsByIds(
       groupStudentsIds,
@@ -246,7 +246,7 @@ export class RollCallService {
       };
     } catch (error) {
       this.handleDBException(error);
-    }
+    } */
   }
 
   private handleDBException(error: any) {

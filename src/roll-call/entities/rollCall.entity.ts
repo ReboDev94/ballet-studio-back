@@ -8,20 +8,20 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { GroupStudents } from '../../group/entities/group-students.entity';
 import { ManyToOne } from 'typeorm';
+import { GroupStudent } from '../../group-students/entities/group-student.entity';
 @Entity()
 @Index(['date', 'groupStudent'], { unique: true })
 export class RollCall {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @ManyToOne(() => GroupStudents, (groupStudent) => groupStudent.rollCall, {
+  @ManyToOne(() => GroupStudent, (groupStudent) => groupStudent.rollCall, {
     nullable: false,
     eager: true,
   })
   @JoinColumn()
-  groupStudent: GroupStudents;
+  groupStudent: GroupStudent;
 
   @Column('date', { nullable: false })
   date: string;

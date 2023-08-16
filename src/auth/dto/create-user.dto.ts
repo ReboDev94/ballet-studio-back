@@ -1,7 +1,6 @@
 import {
   ArrayNotEmpty,
   IsEmail,
-  IsNotEmpty,
   IsOptional,
   IsString,
   Matches,

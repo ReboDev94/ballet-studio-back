@@ -33,8 +33,6 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(School)
-    private readonly schoolRepository: Repository<School>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly dataSource: DataSource,
@@ -98,8 +96,6 @@ export class AuthService {
         roles: [role],
       });
 
-      // const dbSchool = await queryRunner.manager.save(school);
-      // user.school = dbSchool;
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
       return {

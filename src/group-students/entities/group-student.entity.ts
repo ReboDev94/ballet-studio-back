@@ -8,13 +8,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Group } from './group.entity';
 import { Student } from '../../student/entities/student.entity';
 import { RollCall } from '../../roll-call/entities/rollCall.entity';
+import { Group } from 'src/group/entities/group.entity';
 
 @Entity()
 @Index(['group', 'student'], { unique: true })
-export class GroupStudents {
+export class GroupStudent {
   @PrimaryGeneratedColumn('increment')
   id: number;
 

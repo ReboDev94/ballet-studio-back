@@ -8,7 +8,6 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 
-// import { META_ROLES } from '../decorators/role-protected.decorator';
 import { User } from '../entities';
 import { METADATA_LABEL } from '../constants';
 import { IMetadata } from '../interfaces/auth-decorator';

@@ -9,6 +9,7 @@ import { FilesModule } from './files/files.module';
 import { StudentModule } from './student/student.module';
 import { GroupModule } from './group/group.module';
 import { RollCallModule } from './roll-call/roll-call.module';
+import { GroupStudentsModule } from './group-students/group-students.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { RollCallModule } from './roll-call/roll-call.module';
     StudentModule,
     GroupModule,
     RollCallModule,
+    GroupStudentsModule,
   ],
   controllers: [],
   providers: [],

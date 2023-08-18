@@ -52,17 +52,25 @@ export class AuthController {
 
   @Delete('user/:userId')
   @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
-  deleteUser(@Param('userId') userId: number) {
-    return this.authService.deleteUser(userId);
+  deleteUser(
+    @GetUser('school') { id: schoolId }: School,
+    @Param('userId') userId: number,
+  ) {
+    return this.authService.deleteUser(userId, schoolId);
   }
 
   @Patch('update-status-user/:userId')
   @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   updateStatusUser(
+    @GetUser('school') { id: schoolId }: School,
     @Param('userId') userId: number,
     @Body() updateStatusUser: UpdateStatusUserDto,
   ) {
-    return this.authService.updateStatusUser(userId, updateStatusUser);
+    return this.authService.updateStatusUser(
+      userId,
+      schoolId,
+      updateStatusUser,
+    );
   }
 
   @Patch('update-profile')

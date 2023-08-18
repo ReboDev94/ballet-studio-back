@@ -152,24 +152,37 @@ export class AuthService {
     }
   }
 
-  async deleteUser(id: number) {
-    const dbUser = await this.userRepository.findOneBy({ id });
+  async deleteUser(userId: number, schoolId: number) {
+    const dbUser = await this.userRepository.findOneBy({
+      id: userId,
+      isOwner: false,
+      school: { id: schoolId },
+    });
+
     if (!dbUser) throw new NotFoundException('User not found');
     try {
-      await this.userRepository.softDelete({ id });
+      await this.userRepository.softDelete({ id: userId });
       return { success: true, message: 'User deleted' };
     } catch (error) {
       this.handleDBException(error);
     }
   }
 
-  async updateStatusUser(id: number, updateStatusUser: UpdateStatusUserDto) {
-    const dbUser = await this.userRepository.findOneBy({ id });
+  async updateStatusUser(
+    userId: number,
+    schoolId: number,
+    updateStatusUser: UpdateStatusUserDto,
+  ) {
+    const dbUser = await this.userRepository.findOneBy({
+      id: userId,
+      isOwner: false,
+      school: { id: schoolId },
+    });
 
     if (!dbUser) throw new NotFoundException('user not found');
     const { status } = updateStatusUser;
     try {
-      await this.userRepository.update(id, { isActive: status });
+      await this.userRepository.update(userId, { isActive: status });
       return {
         success: true,
         message: 'User status is updated',

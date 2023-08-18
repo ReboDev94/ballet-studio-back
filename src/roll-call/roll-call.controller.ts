@@ -125,7 +125,7 @@ export class RollCallController {
     );
   }
 
-  @Patch(':rollCallId')
+  @Patch('status-attended/:rollCallId')
   @Auth([ValidRoles.admin, ValidRoles.teacher], {
     guards: [UserHasSchoolGuard],
   })

@@ -7,13 +7,11 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { RollCallService } from './roll-call.service';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { RollCallByNameDto } from './dto/roll-call-by-name.dto';
 import { ChangeAttendedDto } from './dto/change-attended.dto';
-import { RollCallBelongsGroupGuard } from './guards/roll-call-belongs-group.guard';
 import { AddStudentsToRollCallDto } from './dto/add-students-roll-call.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { UserHasSchoolGuard } from 'src/auth/guards/user-has-school.guard';

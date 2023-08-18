@@ -8,7 +8,6 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 
-// import { META_ROLES } from '../decorators/role-protected.decorator';
 import { User } from '../entities';
 import { METADATA_LABEL } from '../constants';
 import { IMetadata } from '../interfaces/auth-decorator';
@@ -19,7 +18,7 @@ export class UserRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const metadata: IMetadata = this.reflector.get(
+    const metadata = this.reflector.get<IMetadata>(
       METADATA_LABEL,
       context.getHandler(),
     );

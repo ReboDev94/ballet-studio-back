@@ -4,7 +4,7 @@ import { ValidRoles } from './valid-roles';
 export interface ICustomMetadata {}
 
 export interface IExtraData {
-  metadata?: ICustomMetadata[];
+  metadata?: ICustomMetadata;
   guards?: any[];
 }
 

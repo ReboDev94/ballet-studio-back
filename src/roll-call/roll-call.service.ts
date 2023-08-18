@@ -8,10 +8,11 @@ import { Repository } from 'typeorm';
 import { RollCallByNameDto } from './dto/roll-call-by-name.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RollCall } from './entities/rollCall.entity';
-import { GroupService } from '../group/group.service';
 import { IListRollCall, IRollCall } from './interfaces/rollCall.interface';
 import { ChangeAttendedDto } from './dto/change-attended.dto';
 import { AddStudentsToRollCallDto } from './dto/add-students-roll-call.dto';
+import { GroupService } from 'src/group/group.service';
+import { GroupStudentsService } from 'src/group-students/group-students.service';
 
 @Injectable()
 export class RollCallService {
@@ -20,70 +21,22 @@ export class RollCallService {
     @InjectRepository(RollCall)
     private readonly rollCallRepository: Repository<RollCall>,
     private readonly groupService: GroupService,
+    private readonly groupStudentService: GroupStudentsService,
   ) {}
 
-  async findRollCallByGroupAndDate(groupId: number, date?: string) {
-    const queryBuilder = this.rollCallRepository
-      .createQueryBuilder('rollCall')
-      .leftJoin('rollCall.groupStudent', 'groupStudent')
-      .leftJoin('groupStudent.student', 'student')
-      .leftJoin('groupStudent.group', 'group');
-
-    if (date) queryBuilder.where('date = :date', { date });
-    queryBuilder
-      .andWhere('group.id = :groupId', { groupId })
-      .select([
-        'rollCall.id AS id',
-        'rollCall.date AS date',
-        'rollCall.attended AS attended',
-        'student.id AS "studentId"',
-        'INITCAP(student.name) AS "studentName"',
-      ]);
-
-    const rollCall: IRollCall[] = await queryBuilder.getRawMany();
-
-    return rollCall;
-  }
-
-  async checkExistsRollCall(
+  async create(
     groupId: number,
+    schoolId: number,
     rollCallByNameDto: RollCallByNameDto,
   ) {
-    const { date } = rollCallByNameDto;
-    const rollCall = await this.findRollCallByGroupAndDate(groupId, date);
-    return {
-      success: true,
-      exists: rollCall.length > 0,
-    };
-  }
+    await this.groupService.findOneBySchool(groupId, schoolId);
 
-  async removeRollCallByDate(
-    groupId: number,
-    rollCallByNameDto: RollCallByNameDto,
-  ) {
     const { date } = rollCallByNameDto;
-    const rollCall = await this.findRollCallByGroupAndDate(groupId, date);
-    const rollCallIds = rollCall.map(({ id }) => id);
-    try {
-      if (rollCallIds.length > 0)
-        await this.rollCallRepository.delete(rollCallIds);
-      return {
-        success: true,
-        message: 'rollCall has been removed',
-      };
-    } catch (error) {
-      this.handleDBException(error);
-    }
-  }
-
-  async create(groupId: number, rollCallByNameDto: RollCallByNameDto) {
-    const { date } = rollCallByNameDto;
-    const groupStudents = await this.groupService.findAllGroupStudentsByGroup(
-      groupId,
-    );
+    const groupStudents =
+      await this.groupStudentService.findAllGroupStudentsByGroup(groupId);
 
     try {
-      await this.removeRollCallByDate(groupId, { date });
+      await this.removeRollCallByDate(groupId, schoolId, { date });
       const rollCall: RollCall[] = [];
 
       groupStudents.forEach((gs) => {
@@ -107,7 +60,43 @@ export class RollCallService {
     }
   }
 
-  async findAllByGroup(groupId: number) {
+  async checkExistsRollCall(
+    groupId: number,
+    schoolId: number,
+    rollCallByNameDto: RollCallByNameDto,
+  ) {
+    await this.groupService.findOneBySchool(groupId, schoolId);
+    const { date } = rollCallByNameDto;
+    const rollCall = await this.findRollCallByGroupAndDate(groupId, date);
+    return {
+      success: true,
+      exists: rollCall.length > 0,
+    };
+  }
+
+  async removeRollCallByDate(
+    groupId: number,
+    schoolId: number,
+    rollCallByNameDto: RollCallByNameDto,
+  ) {
+    await this.groupService.findOneBySchool(groupId, schoolId);
+    const { date } = rollCallByNameDto;
+    const rollCall = await this.findRollCallByGroupAndDate(groupId, date);
+    const rollCallIds = rollCall.map(({ id }) => id);
+    try {
+      if (rollCallIds.length > 0)
+        await this.rollCallRepository.delete(rollCallIds);
+      return {
+        success: true,
+        message: 'rollCall has been removed',
+      };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async findAllByGroup(groupId: number, schoolId: number) {
+    await this.groupService.findOneBySchool(groupId, schoolId);
     const dbRollCall = await this.findRollCallByGroupAndDate(groupId);
 
     const headers = [
@@ -171,41 +160,27 @@ export class RollCallService {
 
   async findAllByGroupAndByDate(
     groupId: number,
+    schoolId: number,
     rollCallByNameDto: RollCallByNameDto,
   ) {
+    await this.groupService.findOneBySchool(groupId, schoolId);
     const { date } = rollCallByNameDto;
     const rollCall = await this.findRollCallByGroupAndDate(groupId, date);
     return { success: true, rollCall };
   }
 
-  async changeAttended(
-    rollCallId: number,
-    changeAttendedDto: ChangeAttendedDto,
-  ) {
-    const { attended } = changeAttendedDto;
-    const preRollCall = await this.rollCallRepository.preload({
-      id: rollCallId,
-      attended,
-    });
-    if (!preRollCall) throw new NotFoundException('rollCall not found');
-    try {
-      await this.rollCallRepository.save(preRollCall);
-      return { success: true, message: 'attended status has been changed' };
-    } catch (error) {
-      this.handleDBException(error);
-    }
-    return { rollCallId, changeAttendedDto };
-  }
-
   async findStudentsDoNotBelongsRollCall(
     groupId: number,
+    schoolId: number,
     rollCallByNameDto: RollCallByNameDto,
   ) {
+    await this.groupService.findOneBySchool(groupId, schoolId);
     const { date } = rollCallByNameDto;
-    const dbStudents = await this.groupService.findGroupStudentsNotOnRollCall(
-      groupId,
-      date,
-    );
+    const dbStudents =
+      await this.groupStudentService.findGroupStudentsNotOnRollCall(
+        groupId,
+        date,
+      );
 
     return {
       success: true,
@@ -215,14 +190,17 @@ export class RollCallService {
 
   async addStudentsToRollCall(
     groupId: number,
+    schoolId: number,
     addStudentsToRollCallDto: AddStudentsToRollCallDto,
   ) {
+    await this.groupService.findOneBySchool(groupId, schoolId);
     const { date, groupStudentsIds } = addStudentsToRollCallDto;
 
-    const dbGroupStudents = await this.groupService.findAllGroupStudentsByIds(
-      groupStudentsIds,
-      groupId,
-    );
+    const dbGroupStudents =
+      await this.groupStudentService.findAllGroupStudentsByIds(
+        groupStudentsIds,
+        groupId,
+      );
 
     if (dbGroupStudents.length !== groupStudentsIds.length)
       throw new NotFoundException('Students not found in group');
@@ -247,6 +225,60 @@ export class RollCallService {
     } catch (error) {
       this.handleDBException(error);
     }
+  }
+
+  async changeAttended(
+    rollCallId: number,
+    schoolId: number,
+    changeAttendedDto: ChangeAttendedDto,
+  ) {
+    await this.findOneRollCallById(rollCallId, schoolId);
+    const { attended } = changeAttendedDto;
+    const preRollCall = await this.rollCallRepository.preload({
+      id: rollCallId,
+      attended,
+    });
+    try {
+      await this.rollCallRepository.save(preRollCall);
+      return { success: true, message: 'attended status has been changed' };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async findOneRollCallById(rollCallId: number, schoolId: number) {
+    const dbRollCall = await this.rollCallRepository.findOneBy({
+      id: rollCallId,
+    });
+    if (!dbRollCall) throw new NotFoundException('rollcall not found');
+
+    const groupId = dbRollCall.groupStudent.group.id;
+    const dbGroup = await this.groupService.findOneBySchool(groupId, schoolId);
+    if (!dbGroup) throw new NotFoundException('rollcall not found');
+    return dbRollCall;
+  }
+
+  async findRollCallByGroupAndDate(groupId: number, date?: string) {
+    const queryBuilder = this.rollCallRepository
+      .createQueryBuilder('rollCall')
+      .leftJoin('rollCall.groupStudent', 'groupStudent')
+      .leftJoin('groupStudent.student', 'student')
+      .leftJoin('groupStudent.group', 'group');
+
+    if (date) queryBuilder.where('date = :date', { date });
+    queryBuilder
+      .andWhere('group.id = :groupId', { groupId })
+      .select([
+        'rollCall.id AS id',
+        'rollCall.date AS date',
+        'rollCall.attended AS attended',
+        'student.id AS "studentId"',
+        'INITCAP(student.name) AS "studentName"',
+      ]);
+
+    const rollCall: IRollCall[] = await queryBuilder.getRawMany();
+
+    return rollCall;
   }
 
   private handleDBException(error: any) {

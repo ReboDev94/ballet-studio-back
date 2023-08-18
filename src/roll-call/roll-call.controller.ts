@@ -7,100 +7,137 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { RollCallService } from './roll-call.service';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { RollCallByNameDto } from './dto/roll-call-by-name.dto';
-import { GroupBelongsSchoolGuard } from 'src/group/guards/group-belongs-school.guard';
 import { ChangeAttendedDto } from './dto/change-attended.dto';
-import { RollCallBelongsGroupGuard } from './guards/roll-call-belongs-group.guard';
 import { AddStudentsToRollCallDto } from './dto/add-students-roll-call.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { UserHasSchoolGuard } from 'src/auth/guards/user-has-school.guard';
+import { School } from 'src/school/entities/school.entity';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
 
-@Auth([ValidRoles.admin, ValidRoles.teacher])
 @Controller('roll-call')
 export class RollCallController {
   constructor(private readonly rollCallService: RollCallService) {}
 
-  @Get('group/:groupId/check-exists')
-  @UseGuards(GroupBelongsSchoolGuard)
-  checkExistsRollCall(
+  @Post('create/group/:groupId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
+  create(
+    @GetUser('school') { id: schoolId }: School,
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
   ) {
-    return this.rollCallService.checkExistsRollCall(groupId, rollCallByNameDto);
+    return this.rollCallService.create(groupId, schoolId, rollCallByNameDto);
   }
 
-  @Delete('group/:groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
+  @Get('check-exists/group/:groupId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
+  checkExistsRollCall(
+    @GetUser('school') { id: schoolId }: School,
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Body() rollCallByNameDto: RollCallByNameDto,
+  ) {
+    return this.rollCallService.checkExistsRollCall(
+      groupId,
+      schoolId,
+      rollCallByNameDto,
+    );
+  }
+
+  @Delete('remove-by-date/group/:groupId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
   removeRollCallByDate(
+    @GetUser('school') { id: schoolId }: School,
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
   ) {
     return this.rollCallService.removeRollCallByDate(
       groupId,
+      schoolId,
       rollCallByNameDto,
     );
   }
 
-  @Post('group/:groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
-  create(
+  @Get('find-all/group/:groupId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
+  findAllByGroup(
+    @GetUser('school') { id: schoolId }: School,
     @Param('groupId', ParseIntPipe) groupId: number,
-    @Body() rollCallByNameDto: RollCallByNameDto,
   ) {
-    return this.rollCallService.create(groupId, rollCallByNameDto);
+    return this.rollCallService.findAllByGroup(groupId, schoolId);
   }
 
-  @Get('group/:groupId')
-  @UseGuards(GroupBelongsSchoolGuard)
-  findAllByGroup(@Param('groupId', ParseIntPipe) groupId: number) {
-    return this.rollCallService.findAllByGroup(groupId);
-  }
-
-  @Get('group/:groupId/by-date')
-  @UseGuards(GroupBelongsSchoolGuard)
+  @Get('find-by-date/group/:groupId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
   findAllByGroupAndByDate(
+    @GetUser('school') { id: schoolId }: School,
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
   ) {
     return this.rollCallService.findAllByGroupAndByDate(
       groupId,
+      schoolId,
       rollCallByNameDto,
     );
   }
 
-  @Patch(':rollCallId')
-  @UseGuards(RollCallBelongsGroupGuard)
-  changeAttended(
-    @Param('rollCallId', ParseIntPipe) rollCallId: number,
-    @Body() changeAttendedDto: ChangeAttendedDto,
-  ) {
-    return this.rollCallService.changeAttended(rollCallId, changeAttendedDto);
-  }
-
-  @Get('group/:groupId/students-do-not-belongs-roll-call')
-  @UseGuards(GroupBelongsSchoolGuard)
+  @Get('students-do-not-belongs/group/:groupId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
   findStudentsDoNotBelongsRollCall(
+    @GetUser('school') { id: schoolId }: School,
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() rollCallByNameDto: RollCallByNameDto,
   ) {
     return this.rollCallService.findStudentsDoNotBelongsRollCall(
       groupId,
+      schoolId,
       rollCallByNameDto,
     );
   }
 
-  @Post('group/:groupId/add-students')
-  @UseGuards(GroupBelongsSchoolGuard)
+  @Post('add-students/group/:groupId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
   addStudentsToRollCall(
+    @GetUser('school') { id: schoolId }: School,
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() addStudentsToRollCallDto: AddStudentsToRollCallDto,
   ) {
     return this.rollCallService.addStudentsToRollCall(
       groupId,
+      schoolId,
       addStudentsToRollCallDto,
+    );
+  }
+
+  @Patch('status-attended/:rollCallId')
+  @Auth([ValidRoles.admin, ValidRoles.teacher], {
+    guards: [UserHasSchoolGuard],
+  })
+  changeAttended(
+    @GetUser('school') { id: schoolId }: School,
+    @Param('rollCallId', ParseIntPipe) rollCallId: number,
+    @Body() changeAttendedDto: ChangeAttendedDto,
+  ) {
+    return this.rollCallService.changeAttended(
+      rollCallId,
+      schoolId,
+      changeAttendedDto,
     );
   }
 }

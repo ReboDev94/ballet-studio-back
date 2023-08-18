@@ -11,7 +11,6 @@ import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-
 import { User } from './entities/user.entity';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
@@ -33,8 +32,6 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(School)
-    private readonly schoolRepository: Repository<School>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly dataSource: DataSource,
@@ -98,8 +95,6 @@ export class AuthService {
         roles: [role],
       });
 
-      // const dbSchool = await queryRunner.manager.save(school);
-      // user.school = dbSchool;
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
       return {
@@ -157,24 +152,37 @@ export class AuthService {
     }
   }
 
-  async deleteUser(id: number) {
-    const dbUser = await this.userRepository.findOneBy({ id });
+  async deleteUser(userId: number, schoolId: number) {
+    const dbUser = await this.userRepository.findOneBy({
+      id: userId,
+      isOwner: false,
+      school: { id: schoolId },
+    });
+
     if (!dbUser) throw new NotFoundException('User not found');
     try {
-      await this.userRepository.softDelete({ id });
+      await this.userRepository.softDelete({ id: userId });
       return { success: true, message: 'User deleted' };
     } catch (error) {
       this.handleDBException(error);
     }
   }
 
-  async updateStatusUser(id: number, updateStatusUser: UpdateStatusUserDto) {
-    const dbUser = await this.userRepository.findOneBy({ id });
+  async updateStatusUser(
+    userId: number,
+    schoolId: number,
+    updateStatusUser: UpdateStatusUserDto,
+  ) {
+    const dbUser = await this.userRepository.findOneBy({
+      id: userId,
+      isOwner: false,
+      school: { id: schoolId },
+    });
 
     if (!dbUser) throw new NotFoundException('user not found');
     const { status } = updateStatusUser;
     try {
-      await this.userRepository.update(id, { isActive: status });
+      await this.userRepository.update(userId, { isActive: status });
       return {
         success: true,
         message: 'User status is updated',

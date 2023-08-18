@@ -1,6 +1,6 @@
 import { IsArray, IsInt } from 'class-validator';
 
-export class AddOrRemoveStudentsGroup {
+export class AddOrRemoveStudentsGroupDto {
   @IsInt({ each: true })
   @IsArray()
   students: number[];

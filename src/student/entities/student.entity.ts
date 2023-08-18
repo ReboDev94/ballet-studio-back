@@ -15,7 +15,7 @@ import {
 import { School } from '../../school/entities/school.entity';
 import { Tutor } from './tutor.entity';
 import { ucwords } from 'src/common/utils';
-import { GroupStudents } from '../../group/entities/group-students.entity';
+import { GroupStudent } from 'src/group-students/entities/group-student.entity';
 
 @Entity()
 export class Student {
@@ -43,8 +43,8 @@ export class Student {
   @OneToOne(() => Tutor, (tutor) => tutor.student, { eager: true })
   tutor: Tutor;
 
-  @OneToMany(() => GroupStudents, (groupStudents) => groupStudents.student)
-  groups: GroupStudents[];
+  @OneToMany(() => GroupStudent, (groupStudent) => groupStudent.student)
+  groups: GroupStudent[];
 
   @DeleteDateColumn()
   deletedAt: Date;

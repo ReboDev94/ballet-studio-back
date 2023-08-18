@@ -79,7 +79,11 @@ export class StudentService {
         });
       }
 
-      const studentData = await this.findOne(dbStudent.id, true);
+      const studentData = await this.findOneStudentBySchool(
+        dbStudent.id,
+        school.id,
+        true,
+      );
       return {
         success: true,
         student: studentData,
@@ -94,16 +98,18 @@ export class StudentService {
 
   async update(
     id: number,
+    school: School,
     file: Express.Multer.File,
     updateStudentDto: UpdateStudentDto,
   ) {
+    const { tutor: preTutor, ...preStudent } =
+      await this.findOneStudentBySchool(id, school.id);
+
     const { tutorName, tutorEmail, tutorPhone, tutorCelPhone, ...restDto } =
       updateStudentDto;
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
-    const { tutor: preTutor, ...preStudent } = await this.findOne(id);
 
     try {
       if (file) {
@@ -132,7 +138,11 @@ export class StudentService {
       await queryRunner.manager.save(tutor);
       await queryRunner.commitTransaction();
 
-      const studentData = await this.findOne(id, true);
+      const studentData = await this.findOneStudentBySchool(
+        id,
+        school.id,
+        true,
+      );
       return {
         success: true,
         student: studentData,
@@ -145,17 +155,9 @@ export class StudentService {
     }
   }
 
-  async findOne(id: number, signedAvatar = false) {
-    const student = await this.studentRepository.findOneBy({ id });
-    if (!student) throw new NotFoundException('student not found');
-    if (signedAvatar)
-      student.avatar = await this.getUrlSignedAvatar(id, student.avatar);
-    return student;
-  }
-
-  async remove(id: number) {
-    await this.findOne(id);
-    await this.studentRepository.softDelete({ id });
+  async remove(studentId: number, school: School) {
+    const student = await this.findOneStudentBySchool(studentId, school.id);
+    await this.studentRepository.softDelete({ id: student.id });
     return {
       success: true,
     };
@@ -185,6 +187,24 @@ export class StudentService {
       success: true,
       students: { ...data },
     };
+  }
+
+  async findOneStudentBySchool(
+    studentId: number,
+    schoolId: number,
+    signedAvatar = false,
+  ) {
+    const student = await this.studentRepository.findOne({
+      where: { school: { id: schoolId }, id: studentId },
+    });
+    if (!student) throw new NotFoundException('student not found');
+
+    if (signedAvatar)
+      student.avatar = await this.getUrlSignedAvatar(
+        student.id,
+        student.avatar,
+      );
+    return student;
   }
 
   async getEntitiesByIds(studentIds: number[], { id: schoolId }: School) {

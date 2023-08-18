@@ -10,7 +10,7 @@ import { AddOrRemoveStudentsGroupDto } from './dto/add-remove-students-group.dto
 import { StudentService } from 'src/student/student.service';
 import { GroupStudent } from './entities/group-student.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { SearchStudenthDto } from 'src/student/dto/search-student.dto';
 import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from 'src/common/dto/page-meta.dto';
@@ -145,6 +145,44 @@ export class GroupStudentsService {
       withDeleted: true,
     });
     return groupStudent;
+  }
+
+  async findAllGroupStudentsByGroup(groupId: number) {
+    const groupStudents = await this.groupStudentsRepository.find({
+      where: { group: { id: groupId } },
+    });
+    return groupStudents;
+  }
+
+  async findGroupStudentsNotOnRollCall(groupId: number, date: string) {
+    const queryBuilder = await this.groupStudentsRepository
+      .createQueryBuilder('gs')
+      .leftJoinAndSelect(
+        'gs.rollCall',
+        'rc',
+        'gs.id = rc.groupStudentId AND rc.date = :date',
+        { date },
+      )
+      .leftJoinAndSelect('gs.student', 's', 's.id = gs.studentId')
+      .where(
+        'gs.groupId = :groupId AND (rc.date IS NULL OR rc.date != :date)',
+        { groupId, date },
+      )
+      .select([
+        'gs.id as id',
+        'gs.groupId as groupId',
+        's.id as studentId',
+        'INITCAP(s.name) as studentName',
+      ])
+      .getRawMany();
+    return queryBuilder;
+  }
+
+  async findAllGroupStudentsByIds(groupStudentIds: number[], groupId: number) {
+    const dbGroupStudent = await this.groupStudentsRepository.find({
+      where: { id: In(groupStudentIds), group: { id: groupId } },
+    });
+    return dbGroupStudent;
   }
 
   private handleDBException(error: any) {

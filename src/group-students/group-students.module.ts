@@ -16,6 +16,6 @@ import { StudentModule } from 'src/student/student.module';
     GroupModule,
     StudentModule,
   ],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, GroupStudentsService],
 })
 export class GroupStudentsModule {}

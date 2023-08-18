@@ -79,7 +79,7 @@ export class StudentService {
         });
       }
 
-      const studentData = await this.findOneStudentByIDandSchool(
+      const studentData = await this.findOneStudentBySchool(
         dbStudent.id,
         school.id,
         true,
@@ -103,7 +103,7 @@ export class StudentService {
     updateStudentDto: UpdateStudentDto,
   ) {
     const { tutor: preTutor, ...preStudent } =
-      await this.findOneStudentByIDandSchool(id, school.id);
+      await this.findOneStudentBySchool(id, school.id);
 
     const { tutorName, tutorEmail, tutorPhone, tutorCelPhone, ...restDto } =
       updateStudentDto;
@@ -138,7 +138,7 @@ export class StudentService {
       await queryRunner.manager.save(tutor);
       await queryRunner.commitTransaction();
 
-      const studentData = await this.findOneStudentByIDandSchool(
+      const studentData = await this.findOneStudentBySchool(
         id,
         school.id,
         true,
@@ -155,32 +155,9 @@ export class StudentService {
     }
   }
 
-  async findOneStudentByIDandSchool(
-    studentId: number,
-    schoolId: number,
-    signedAvatar = false,
-  ) {
-    const student = await this.studentRepository.findOne({
-      where: { school: { id: schoolId }, id: studentId },
-    });
-    if (!student) throw new NotFoundException('student not found');
-
-    if (signedAvatar)
-      student.avatar = await this.getUrlSignedAvatar(
-        student.id,
-        student.avatar,
-      );
-    return student;
-  }
-
   async remove(studentId: number, school: School) {
-    const student = await this.findOneStudentByIDandSchool(
-      studentId,
-      school.id,
-    );
-
+    const student = await this.findOneStudentBySchool(studentId, school.id);
     await this.studentRepository.softDelete({ id: student.id });
-
     return {
       success: true,
     };
@@ -210,6 +187,24 @@ export class StudentService {
       success: true,
       students: { ...data },
     };
+  }
+
+  async findOneStudentBySchool(
+    studentId: number,
+    schoolId: number,
+    signedAvatar = false,
+  ) {
+    const student = await this.studentRepository.findOne({
+      where: { school: { id: schoolId }, id: studentId },
+    });
+    if (!student) throw new NotFoundException('student not found');
+
+    if (signedAvatar)
+      student.avatar = await this.getUrlSignedAvatar(
+        student.id,
+        student.avatar,
+      );
+    return student;
   }
 
   async getEntitiesByIds(studentIds: number[], { id: schoolId }: School) {

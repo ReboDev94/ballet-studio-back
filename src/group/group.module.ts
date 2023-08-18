@@ -9,6 +9,6 @@ import { AuthModule } from '../auth/auth.module';
   controllers: [GroupController],
   providers: [GroupService],
   imports: [TypeOrmModule.forFeature([Group]), AuthModule],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, GroupService],
 })
 export class GroupModule {}

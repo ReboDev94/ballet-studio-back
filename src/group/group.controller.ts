@@ -68,40 +68,4 @@ export class GroupController {
   ) {
     return this.groupService.remove(groupId, schoolId);
   }
-
-  /*
-
-
-
-
-
-
-
-  @Post(':groupId/add-students')
-  // @UseGuards(GroupBelongsSchoolGuard)
-  addStudents(
-    @GetUser('school') school: School,
-    @Param('groupId', ParseIntPipe) groupId: number,
-    @Body() addStudentsGroupDto: AddOrRemoveStudentsGroup,
-  ) {
-    return this.groupService.addStudents(groupId, addStudentsGroupDto, school);
-  }
-
-  @Post(':groupId/remove-students')
-  // @UseGuards(GroupBelongsSchoolGuard)
-  removeStudents(
-    @Param('groupId', ParseIntPipe) groupId: number,
-    @Body() addOrRemoveStudentsGroup: AddOrRemoveStudentsGroup,
-  ) {
-    return this.groupService.removeStudents(groupId, addOrRemoveStudentsGroup);
-  }
-
-  @Get(':groupId/all-students')
-  // @UseGuards(GroupBelongsSchoolGuard)
-  allStudentsByGroup(
-    @Param('groupId', ParseIntPipe) groupId: number,
-    @Query() searchStudentDto: SearchStudenthDto,
-  ) {
-    return this.groupService.allStudentsByGroup(groupId, searchStudentDto);
-  } */
 }

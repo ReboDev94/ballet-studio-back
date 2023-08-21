@@ -19,8 +19,6 @@ export class SchoolService {
   constructor(
     @InjectRepository(School)
     private readonly schoolRepository: Repository<School>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     private readonly fileService: FilesService,
     private readonly dataSource: DataSource,
   ) {}
@@ -37,17 +35,18 @@ export class SchoolService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
     try {
       const school = this.schoolRepository.create({ ...createSchoolDto });
       const dbSchool = await queryRunner.manager.save(school);
       await queryRunner.manager.update(User, user.id, { school: dbSchool });
-
       await queryRunner.commitTransaction();
-      await this.update(dbSchool.id, file, {});
+      if (file) {
+        const dbSchoolUpdate = await this.update(dbSchool.id, file, {});
+        return dbSchoolUpdate;
+      }
       return {
         success: true,
-        message: 'School has been registered',
+        school: dbSchool,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -66,6 +65,7 @@ export class SchoolService {
       id: schoolId,
       ...updateSchoolDto,
     });
+
     if (!school) throw new NotFoundException('school not found');
 
     try {
@@ -77,22 +77,36 @@ export class SchoolService {
         );
         school.logo = name;
       }
-
       await this.schoolRepository.save(school);
+      const dbSchool = await this.findOne(school, true);
       return {
         success: true,
-        message: 'school has been updated',
+        school: dbSchool,
       };
     } catch (error) {
       this.handleDBException(error);
     }
   }
 
-  async findOne(school: School) {
+  async getSchool(school: School) {
+    const dbSchool = await this.findOne(school, true);
     return {
       success: true,
-      school,
+      school: dbSchool,
     };
+  }
+
+  async findOne(school: School, presignedUrl = false) {
+    const schoolAux = { ...school };
+    if (presignedUrl) {
+      const url = school.logo
+        ? await this.fileService.getPresignedUrlS3(
+            `school/${school.id}/profile/${school.logo}`,
+          )
+        : null;
+      schoolAux.logo = url;
+    }
+    return schoolAux;
   }
 
   private handleDBException(error: any) {

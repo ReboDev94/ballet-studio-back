@@ -1,7 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { PageOptionsDto } from '../../common/dto/page-options.dto';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 import { ValidRoles } from '../interfaces/valid-roles';
+import { Transform } from 'class-transformer';
 
 export class SearchUserDto extends PartialType(PageOptionsDto) {
   @IsString()
@@ -11,4 +12,11 @@ export class SearchUserDto extends PartialType(PageOptionsDto) {
   @IsEnum(ValidRoles)
   @IsOptional()
   role?: ValidRoles;
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => {
+    return [true, 'enabled', 'true', 1, '1'].indexOf(value) > -1;
+  })
+  photos?: boolean;
 }

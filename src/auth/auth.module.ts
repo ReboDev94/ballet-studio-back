@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { JwtStrategy } from './strategies/jwt-strategy';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   controllers: [AuthController],
@@ -27,6 +28,7 @@ import { JwtStrategy } from './strategies/jwt-strategy';
         };
       },
     }),
+    FilesModule,
   ],
   exports: [TypeOrmModule, JwtStrategy, PassportModule, JwtModule, AuthService],
 })

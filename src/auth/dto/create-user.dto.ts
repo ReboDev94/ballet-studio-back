@@ -37,4 +37,8 @@ export class CreateUserDto {
   @ArrayNotEmpty()
   @IsEnum(ValidRoles, { each: true })
   roles: ValidRoles[];
+
+  @IsString()
+  @IsOptional()
+  photo: string | null;
 }

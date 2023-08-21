@@ -25,6 +25,9 @@ export class User {
   id: number;
 
   @Column('text', { nullable: true })
+  photo: string | null;
+
+  @Column('text', { nullable: true })
   name: string;
 
   @Column('text', { unique: true })

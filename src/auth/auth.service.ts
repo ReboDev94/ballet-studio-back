@@ -12,18 +12,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
-import { CreateUserDto, LoginUserDto } from './dto';
+import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
 import { RegisterUserDto } from './dto';
 import { School } from '../school/entities/school.entity';
 import { Role } from './entities/role.entity';
 import { ValidRoles } from './interfaces/valid-roles';
-import { UpdateSchoolDto } from '../school/dto/update-school.dto';
 import { UpdateStatusUserDto } from './dto/update-status-user.dto';
 import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
 import { SearchUserDto } from './dto/search-user.dto';
+import { FilesService } from 'src/files/files.service';
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -36,6 +36,7 @@ export class AuthService {
     private readonly roleRepository: Repository<Role>,
     private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
+    private readonly fileService: FilesService,
   ) {}
 
   async login(loginUserDto: LoginUserDto) {
@@ -52,6 +53,7 @@ export class AuthService {
         isOwner: true,
         isActive: true,
         roles: true,
+        photo: true,
       },
       relations: { school: true },
     });
@@ -65,6 +67,9 @@ export class AuthService {
     delete user.password;
     const hasSchool = !!user.school;
     delete user.school;
+
+    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    user.photo = urlPhoto;
 
     return {
       success: true,
@@ -112,6 +117,9 @@ export class AuthService {
   async getUser(user: User) {
     const hasSchool = !!user.school;
     delete user.school;
+
+    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    user.photo = urlPhoto;
 
     return {
       success: true,
@@ -197,7 +205,7 @@ export class AuthService {
     schoolId: number,
     searchUserDto: SearchUserDto,
   ) {
-    const { take, skip, page, name, role } = searchUserDto;
+    const { take, skip, page, name, role, photos } = searchUserDto;
 
     const pageOptionsDto: PageOptionsDto = {
       take,
@@ -225,7 +233,19 @@ export class AuthService {
       });
     }
     const itemCount = await preQueryBuilder.getCount();
-    const users = await preQueryBuilder.offset(skip).take(take).getMany();
+
+    let users: User[] = [];
+    const dbUsers = await preQueryBuilder.offset(skip).take(take).getMany();
+
+    if (photos) {
+      for (const user of dbUsers) {
+        const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+        user.photo = urlPhoto;
+        users.push(user);
+      }
+    } else {
+      users = dbUsers;
+    }
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     const data = new PageDto(users, pageMetaDto);
@@ -236,18 +256,34 @@ export class AuthService {
     };
   }
 
-  async updateProfile(id: number, updateUserDto: UpdateSchoolDto) {
+  async updateProfile(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+    file: Express.Multer.File,
+  ) {
     const user = await this.userRepository.preload({
-      id,
+      id: userId,
       ...updateUserDto,
     });
-
     if (!user) throw new NotFoundException('user not found');
+
     try {
-      await this.userRepository.save(user);
+      if (file) {
+        const { name } = await this.fileService.uploadS3(
+          file,
+          `user/${userId}/profile/`,
+          user.photo,
+        );
+        user.photo = name;
+      }
+
+      const dbUser = await this.userRepository.save(user);
+      const urlPhoto = await this.getPresignedUrl(dbUser.id, dbUser.photo);
+      dbUser.photo = urlPhoto;
+
       return {
         success: true,
-        message: 'User has been updated',
+        user: dbUser,
       };
     } catch (error) {
       this.handleDBException(error);
@@ -268,6 +304,16 @@ export class AuthService {
     );
     if (!isTeacher) throw new ForbiddenException('User is not teacher');
     return teacher;
+  }
+
+  private async getPresignedUrl(userId: number, photoName: string | null) {
+    let urlPhoto: string | null = null;
+    if (photoName) {
+      urlPhoto = await this.fileService.getPresignedUrlS3(
+        `user/${userId}/profile/${photoName}`,
+      );
+    }
+    return urlPhoto;
   }
 
   private getJwt(payload: JwtPayload) {

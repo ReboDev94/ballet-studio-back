@@ -10,10 +10,13 @@ export const fileFilterImage = (
     return callback(new InternalServerErrorException('file is empty'), false);
 
   const fileExtension = file.mimetype.split('/')[1];
-  const VALID_EXTENSION = ['jpg', 'jpeg', 'png', 'gif'];
+  const VALID_EXTENSION = ['jpg', 'jpeg', 'png'];
 
-  if (VALID_EXTENSION.includes(fileExtension)) {
-    return callback(null, true);
+  if (!VALID_EXTENSION.includes(fileExtension)) {
+    return callback(
+      new InternalServerErrorException('file is not support'),
+      false,
+    );
   }
 
   return callback(null, false);

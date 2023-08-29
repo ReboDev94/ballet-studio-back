@@ -44,9 +44,10 @@ export class SchoolService {
         const dbSchoolUpdate = await this.update(dbSchool.id, file, {});
         return dbSchoolUpdate;
       }
+      const schoolFind = await this.findOne(dbSchool.id, true);
       return {
         success: true,
-        school: dbSchool,
+        school: schoolFind,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -78,7 +79,7 @@ export class SchoolService {
         school.logo = name;
       }
       await this.schoolRepository.save(school);
-      const dbSchool = await this.findOne(school, true);
+      const dbSchool = await this.findOne(schoolId, true);
       return {
         success: true,
         school: dbSchool,
@@ -89,24 +90,36 @@ export class SchoolService {
   }
 
   async getSchool(school: School) {
-    const dbSchool = await this.findOne(school, true);
+    school.logo = await this.generatePresignedUrlLogoSchool(
+      school.id,
+      school.logo,
+    );
     return {
       success: true,
-      school: dbSchool,
+      school: school,
     };
   }
 
-  async findOne(school: School, presignedUrl = false) {
-    const schoolAux = { ...school };
+  async generatePresignedUrlLogoSchool(schoolId: number, logo: string | null) {
+    const url = logo
+      ? await this.fileService.getPresignedUrlS3(
+          `school/${schoolId}/profile/${logo}`,
+        )
+      : null;
+    return url;
+  }
+
+  async findOne(schoolId: number, presignedUrl = false) {
+    const dbSchool = await this.schoolRepository.findOneBy({ id: schoolId });
+    if (!dbSchool) throw new NotFoundException('school not found');
+
     if (presignedUrl) {
-      const url = school.logo
-        ? await this.fileService.getPresignedUrlS3(
-            `school/${school.id}/profile/${school.logo}`,
-          )
-        : null;
-      schoolAux.logo = url;
+      dbSchool.logo = await this.generatePresignedUrlLogoSchool(
+        dbSchool.id,
+        dbSchool.logo,
+      );
     }
-    return schoolAux;
+    return dbSchool;
   }
 
   private handleDBException(error: any) {

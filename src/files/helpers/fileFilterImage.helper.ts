@@ -19,5 +19,5 @@ export const fileFilterImage = (
     );
   }
 
-  return callback(null, false);
+  return callback(null, true);
 };

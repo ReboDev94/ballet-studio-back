@@ -15,7 +15,7 @@ interface SeedUser {
 interface SeedSchool {
   name: string;
   description: string;
-  phone: string | null;
+  phone: string;
   address: string;
   certifications: string[];
   directorName: string;
@@ -32,7 +32,7 @@ export const initialData: SeedData = {
   school: {
     name: 'Ballet Studio',
     description: 'Escuela de ballet',
-    phone: null,
+    phone: '',
     address: 'Av Gobernadores #24',
     certifications: [],
     directorName: 'Dalia Nava',

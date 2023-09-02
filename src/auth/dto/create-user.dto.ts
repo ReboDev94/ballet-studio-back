@@ -31,7 +31,7 @@ export class CreateUserDto {
 
   @IsString({ message: 'validation.STRING' })
   @IsOptional()
-  phone: string;
+  phone?: string = '';
 
   @IsArray({ message: 'validation.IS_ARRAY' })
   @ArrayNotEmpty({ message: 'validation.ARRAY.NOT_EMPTY' })
@@ -40,5 +40,5 @@ export class CreateUserDto {
 
   @IsString({ message: 'validation.STRING' })
   @IsOptional()
-  photo: string | null;
+  photo: string | null = null;
 }

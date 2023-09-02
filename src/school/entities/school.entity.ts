@@ -20,13 +20,13 @@ export class School {
   @Column('text')
   name: string;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
   description: string;
 
-  @Column('text', { nullable: true })
-  phone: string | null;
+  @Column('text', { default: '' })
+  phone: string;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
   address: string;
 
   @Column('text', {

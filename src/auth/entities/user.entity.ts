@@ -27,7 +27,7 @@ export class User {
   @Column('text', { nullable: true })
   photo: string | null;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
   name: string;
 
   @Column('text', { unique: true })
@@ -36,7 +36,7 @@ export class User {
   @Column('text', { select: false })
   password: string;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
   phone: string;
 
   @Column('bool', { default: false })

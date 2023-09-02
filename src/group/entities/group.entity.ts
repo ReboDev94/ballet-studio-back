@@ -18,7 +18,7 @@ export class Group {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
   description: string;
 
   /*

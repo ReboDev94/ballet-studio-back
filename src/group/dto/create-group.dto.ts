@@ -15,7 +15,7 @@ import { Degrees } from '../../common/interfaces/degrees';
 export class CreateGroupDto {
   @IsString({ message: 'validation.STRING' })
   @IsOptional()
-  description?: string;
+  description?: string = '';
 
   @IsArray({ message: 'validation.IS_ARRAY' })
   @ValidateNested({ each: true, message: 'validation.ARRAY.OBJECT' })

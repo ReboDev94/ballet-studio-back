@@ -5,15 +5,15 @@ import { ValidRoles } from '../interfaces/valid-roles';
 import { Transform } from 'class-transformer';
 
 export class SearchUserDto extends PartialType(PageOptionsDto) {
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
   name?: string;
 
-  @IsEnum(ValidRoles)
+  @IsEnum(ValidRoles, { message: 'validation.ENUM' })
   @IsOptional()
   role?: ValidRoles;
 
-  @IsBoolean()
+  @IsBoolean({ message: 'validation.BOOLEAN' })
   @IsOptional()
   @Transform(({ value }) => {
     return [true, 'enabled', 'true', 1, '1'].indexOf(value) > -1;

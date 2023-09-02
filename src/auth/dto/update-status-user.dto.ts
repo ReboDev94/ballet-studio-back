@@ -1,6 +1,6 @@
 import { IsBoolean } from 'class-validator';
 
 export class UpdateStatusUserDto {
-  @IsBoolean()
+  @IsBoolean({ message: 'validation.BOOLEAN' })
   status: boolean;
 }

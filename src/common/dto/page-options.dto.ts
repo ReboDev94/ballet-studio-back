@@ -3,20 +3,20 @@ import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { Order } from '../constants/pagination';
 
 export class PageOptionsDto {
-  @IsEnum(Order)
+  @IsEnum(Order, { message: 'validation.ENUM' })
   @IsOptional()
   readonly order?: Order = Order.ASC;
 
   @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  @IsInt({ message: 'validation.INT' })
+  @Min(1, { message: 'validation.MIN.INT' })
   @IsOptional()
   readonly page?: number = 1;
 
   @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(50)
+  @IsInt({ message: 'validation.INT' })
+  @Min(1, { message: 'validation.MIN.INT' })
+  @Max(50, { message: 'validation.MAX.INT' })
   @IsOptional()
   readonly take?: number = 15;
 

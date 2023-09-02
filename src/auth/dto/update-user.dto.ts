@@ -1,15 +1,15 @@
 import { IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateUserDto {
-  @IsString()
-  @MinLength(1)
+  @IsString({ message: 'validation.STRING' })
+  @MinLength(1, { message: 'validation.MIN.STRING' })
   name: string;
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
   phone: string;
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
   photo: string | null;
 }

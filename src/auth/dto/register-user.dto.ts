@@ -9,15 +9,15 @@ import {
 import { regexPassword } from 'src/common/utils';
 
 export class RegisterUserDto {
-  @IsString()
-  @IsEmail()
+  @IsString({ message: 'validation.STRING' })
+  @IsEmail({}, { message: 'validation.EMAIL' })
   email: string;
 
-  @IsString()
-  @MinLength(6)
-  @MaxLength(50)
+  @IsString({ message: 'validation.STRING' })
+  @MinLength(6, { message: 'validation.MIN.STRING' })
+  @MaxLength(50, { message: 'validation.MAX.STRING' })
   @Matches(regexPassword, {
-    message: 'Password must have a Uppercase, lowercase letter and a number',
+    message: 'validation.PASSWORD',
   })
   password: string;
 }

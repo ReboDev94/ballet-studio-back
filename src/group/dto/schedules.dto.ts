@@ -3,10 +3,10 @@ import { Days } from '../../common/interfaces/days';
 import { REGEX_HOUR } from '../../common/constants/regex-hourt';
 
 export class SchedulesDto {
-  @IsEnum(Days)
+  @IsEnum(Days, { message: 'validation.ENUM' })
   day: Days;
 
-  @IsString()
-  @Matches(REGEX_HOUR, { message: 'La hora no es valida' })
+  @IsString({ message: 'validation.STRING' })
+  @Matches(REGEX_HOUR, { message: 'validation.HOUR' })
   hour: string;
 }

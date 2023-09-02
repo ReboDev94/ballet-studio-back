@@ -11,19 +11,19 @@ import {
 import { IsOlder } from './../../common/utils/is-older';
 
 export class CreateStudentDto {
-  @IsString()
-  @MinLength(1)
+  @IsString({ message: 'validation.STRING' })
+  @MinLength(1, { message: 'validation.MIN.STRING' })
   name: string;
 
-  @IsDateString()
+  @IsDateString({}, { message: 'validation.DATE.STRING' })
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   dateOfBirth: string;
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   address: string;
 
-  @IsString({ each: true })
-  @IsArray()
+  @IsString({ each: true, message: 'validation.ARRAY.STRING' })
+  @IsArray({ message: 'validation.IS_ARRAY' })
   @IsOptional()
   dieseses?: string[];
 
@@ -31,20 +31,20 @@ export class CreateStudentDto {
     if (!o.dateOfBirth) return true;
     return !IsOlder(o.dateOfBirth);
   })
-  @IsString()
-  @MinLength(1)
+  @IsString({ message: 'validation.STRING' })
+  @MinLength(1, { message: 'validation.MIN.STRING' })
   tutorName?: string;
 
-  @IsString()
-  @IsEmail()
+  @IsString({ message: 'validation.STRING' })
+  @IsEmail({}, { message: 'validation.EMAIL' })
   @IsOptional()
   tutorEmail?: string;
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
   tutorPhone: string;
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   tutorCelPhone: string;
 
   // @IsBoolean()

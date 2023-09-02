@@ -1,0 +1,3 @@
+{
+    "REQUIRED": "$t(attributes.{property}) es requerido"
+}

@@ -2,7 +2,7 @@ import { IsArray, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateSchoolDto {
   @IsString()
-  @MinLength(1)
+  @MinLength(1, { message: 'validation.REQUIRED' })
   name: string;
 
   @IsString()

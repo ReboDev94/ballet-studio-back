@@ -1,4 +1,11 @@
 import { Module } from '@nestjs/common';
+import {
+  AcceptLanguageResolver,
+  HeaderResolver,
+  I18nModule,
+  QueryResolver,
+} from 'nestjs-i18n';
+import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
@@ -23,6 +30,18 @@ import { GroupStudentsModule } from './group-students/group-students.module';
       password: process.env.PGPASSWORD,
       autoLoadEntities: process.env.NODE_ENV === 'development',
       synchronize: process.env.NODE_ENV === 'development',
+    }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'es',
+      loaderOptions: {
+        path: join(__dirname, '/i18n/'),
+        watch: process.env.NODE_ENV === 'development',
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+        new HeaderResolver(['x-lang']),
+      ],
     }),
     AuthModule,
     SeedModule,

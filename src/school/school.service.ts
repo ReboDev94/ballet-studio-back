@@ -19,8 +19,6 @@ export class SchoolService {
   constructor(
     @InjectRepository(School)
     private readonly schoolRepository: Repository<School>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     private readonly fileService: FilesService,
     private readonly dataSource: DataSource,
   ) {}
@@ -32,22 +30,26 @@ export class SchoolService {
   ) {
     const hasSchool = !!user.school;
     if (hasSchool)
-      throw new PreconditionFailedException('user alredy has school');
+      throw new PreconditionFailedException({
+        key: 'operations.USER.HAS_SCHOOL',
+      });
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
     try {
       const school = this.schoolRepository.create({ ...createSchoolDto });
       const dbSchool = await queryRunner.manager.save(school);
       await queryRunner.manager.update(User, user.id, { school: dbSchool });
-
       await queryRunner.commitTransaction();
-      await this.update(dbSchool.id, file, {});
+      if (file) {
+        const dbSchoolUpdate = await this.update(dbSchool.id, file, {});
+        return dbSchoolUpdate;
+      }
+      const schoolFind = await this.findOne(dbSchool.id, true);
       return {
         success: true,
-        message: 'School has been registered',
+        school: schoolFind,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -66,7 +68,9 @@ export class SchoolService {
       id: schoolId,
       ...updateSchoolDto,
     });
-    if (!school) throw new NotFoundException('school not found');
+
+    if (!school)
+      throw new NotFoundException({ key: 'operations.SCHOOL.NOT_FOUND' });
 
     try {
       if (file) {
@@ -77,22 +81,49 @@ export class SchoolService {
         );
         school.logo = name;
       }
-
       await this.schoolRepository.save(school);
+      const dbSchool = await this.findOne(schoolId, true);
       return {
         success: true,
-        message: 'school has been updated',
+        school: dbSchool,
       };
     } catch (error) {
       this.handleDBException(error);
     }
   }
 
-  async findOne(school: School) {
+  async getSchool(school: School) {
+    school.logo = await this.generatePresignedUrlLogoSchool(
+      school.id,
+      school.logo,
+    );
     return {
       success: true,
-      school,
+      school: school,
     };
+  }
+
+  async generatePresignedUrlLogoSchool(schoolId: number, logo: string | null) {
+    const url = logo
+      ? await this.fileService.getPresignedUrlS3(
+          `school/${schoolId}/profile/${logo}`,
+        )
+      : null;
+    return url;
+  }
+
+  async findOne(schoolId: number, presignedUrl = false) {
+    const dbSchool = await this.schoolRepository.findOneBy({ id: schoolId });
+    if (!dbSchool)
+      throw new NotFoundException({ key: 'operations.SCHOOL.NOT_FOUND' });
+
+    if (presignedUrl) {
+      dbSchool.logo = await this.generatePresignedUrlLogoSchool(
+        dbSchool.id,
+        dbSchool.logo,
+      );
+    }
+    return dbSchool;
   }
 
   private handleDBException(error: any) {

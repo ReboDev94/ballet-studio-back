@@ -13,7 +13,9 @@ export class UserHasSchoolGuard implements CanActivate {
     const userReq = req.user as User;
 
     if (!userReq?.school)
-      throw new UnauthorizedException('user doesn´t have school');
+      throw new UnauthorizedException({
+        key: 'operations.USER.HAS_NOT_SCHOOL',
+      });
 
     return true;
   }

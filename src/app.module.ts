@@ -1,4 +1,12 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
+import {
+  AcceptLanguageResolver,
+  HeaderResolver,
+  I18nModule,
+  QueryResolver,
+} from 'nestjs-i18n';
+import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
@@ -10,6 +18,7 @@ import { StudentModule } from './student/student.module';
 import { GroupModule } from './group/group.module';
 import { RollCallModule } from './roll-call/roll-call.module';
 import { GroupStudentsModule } from './group-students/group-students.module';
+import { AllExceptionsFilter } from './common/helpers';
 
 @Module({
   imports: [
@@ -24,6 +33,18 @@ import { GroupStudentsModule } from './group-students/group-students.module';
       autoLoadEntities: process.env.NODE_ENV === 'development',
       synchronize: process.env.NODE_ENV === 'development',
     }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'es',
+      loaderOptions: {
+        path: join(__dirname, '/i18n/'),
+        watch: process.env.NODE_ENV === 'development',
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+        new HeaderResolver(['x-lang']),
+      ],
+    }),
     AuthModule,
     SeedModule,
     SchoolModule,
@@ -35,6 +56,11 @@ import { GroupStudentsModule } from './group-students/group-students.module';
     GroupStudentsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+  ],
 })
 export class AppModule {}

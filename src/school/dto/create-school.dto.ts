@@ -1,32 +1,28 @@
 import { IsArray, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateSchoolDto {
-  @IsString()
-  @MinLength(1)
+  @IsString({ message: 'validation.STRING' })
+  @MinLength(1, { message: 'validation.MIN.STRING' })
   name: string;
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
-  description?: string;
+  description?: string = '';
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
-  phone?: string;
+  phone?: string = '';
 
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
-  address?: string;
+  address?: string = '';
 
-  @IsString({ each: true })
-  @IsArray()
+  @IsString({ each: true, message: 'validation.ARRAY.STRING' })
+  @IsArray({ message: 'validation.IS_ARRAY' })
   @IsOptional()
-  certifications?: string[];
+  certifications?: string[] = [];
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ message: 'validation.STRING' })
+  @MinLength(1, { message: 'validation.MIN.STRING' })
   directorName: string;
-
-  @IsString()
-  @IsOptional()
-  logo?: string;
 }

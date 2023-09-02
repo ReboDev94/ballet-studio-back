@@ -5,12 +5,12 @@ import { IsEnum, IsOptional, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SearchGroupDto extends PartialType(PageOptionsDto) {
-  @IsEnum(Degrees)
+  @IsEnum(Degrees, { message: 'validation.ENUM' })
   @IsOptional()
   degree?: Degrees;
 
   @Type(() => Number)
-  @IsInt()
+  @IsInt({ message: 'validation.INT' })
   @IsOptional()
   teacher?: number;
 }

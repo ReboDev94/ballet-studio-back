@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
+import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 import { config } from 'aws-sdk';
 
 async function bootstrap() {
@@ -8,10 +8,22 @@ async function bootstrap() {
   app.enableCors();
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
-    new ValidationPipe({
+    new I18nValidationPipe({
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
+      stopAtFirstError: true,
+    }),
+  );
+  app.useGlobalFilters(
+    new I18nValidationExceptionFilter({
+      errorFormatter(errors) {
+        const result = errors.map((error) => ({
+          property: error.property,
+          message: error.constraints[Object.keys(error.constraints)[0]],
+        }));
+        return result;
+      },
     }),
   );
   config.update({
@@ -21,4 +33,5 @@ async function bootstrap() {
   });
   await app.listen(3000);
 }
+
 bootstrap();

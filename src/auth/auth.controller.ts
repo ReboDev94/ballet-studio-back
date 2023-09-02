@@ -7,19 +7,27 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
-import { CreateUserDto, LoginUserDto, UpdateStatusUserDto } from './dto';
+import {
+  CreateUserDto,
+  LoginUserDto,
+  UpdateStatusUserDto,
+  UpdateUserDto,
+} from './dto';
 import { RegisterUserDto } from './dto';
 import { GetUser } from './decorators/get-user.decorator';
-import { UpdateSchoolDto } from '../school/dto/update-school.dto';
 import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces/valid-roles';
 import { School } from '../school/entities/school.entity';
 import { SearchUserDto } from './dto/search-user.dto';
 import { UserHasSchoolGuard } from './guards/user-has-school.guard';
 import { Auth } from './decorators/auth.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { fileFilterImage } from 'src/files/helpers';
 
 @Controller('auth')
 export class AuthController {
@@ -75,11 +83,18 @@ export class AuthController {
 
   @Patch('update-profile')
   @Auth([])
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 2097152 },
+      fileFilter: fileFilterImage,
+    }),
+  )
   updateProfile(
     @GetUser('id') id: number,
-    @Body() updateUserDto: UpdateSchoolDto,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.authService.updateProfile(id, updateUserDto);
+    return this.authService.updateProfile(id, updateUserDto, file);
   }
 
   @Get('users')

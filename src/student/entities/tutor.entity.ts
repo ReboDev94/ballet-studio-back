@@ -19,10 +19,10 @@ export class Tutor {
   @Column('text')
   name: string;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
   email: string;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
   phone: string;
 
   @Column('text')

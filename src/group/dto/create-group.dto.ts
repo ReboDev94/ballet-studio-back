@@ -13,25 +13,25 @@ import { IsInt } from 'class-validator';
 import { Degrees } from '../../common/interfaces/degrees';
 
 export class CreateGroupDto {
-  @IsString()
+  @IsString({ message: 'validation.STRING' })
   @IsOptional()
-  description?: string;
+  description?: string = '';
 
-  @IsArray()
-  @ValidateNested({ each: true })
+  @IsArray({ message: 'validation.IS_ARRAY' })
+  @ValidateNested({ each: true, message: 'validation.ARRAY.OBJECT' })
   @Type(() => SchedulesDto)
   schedules: SchedulesDto[];
 
-  @IsDateString()
+  @IsDateString({}, { message: 'validation.DATE.STRING' })
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   startDate: string;
 
-  @IsInt()
+  @IsInt({ message: 'validation.INT' })
   schoolCycle: number;
 
-  @IsEnum(Degrees)
+  @IsEnum(Degrees, { message: 'validation.ENUM' })
   degree: Degrees;
 
-  @IsInt()
+  @IsInt({ message: 'validation.INT' })
   teacherId: number;
 }

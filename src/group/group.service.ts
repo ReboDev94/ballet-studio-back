@@ -124,7 +124,7 @@ export class GroupService {
         teacher: true,
       },
     });
-    if (!dbGroup) throw new NotFoundException('group not found');
+    if (!dbGroup) throw new NotFoundException({ key: 'operations.GROUP.NOT_FOUND' });
     return dbGroup;
   }
 

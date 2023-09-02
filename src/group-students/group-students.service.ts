@@ -40,7 +40,9 @@ export class GroupStudentsService {
     );
 
     if (studentsEntities.length !== students.length)
-      throw new NotFoundException('some of the students not found');
+      throw new NotFoundException({
+        key: 'operations.GROUP.STUDENTS_NOT_FOUND',
+      });
 
     try {
       const groupStudents: GroupStudent[] = [];

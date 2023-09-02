@@ -58,6 +58,6 @@ export class SchoolController {
   @Get()
   @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   findOne(@GetUser('school') school: School) {
-    return this.schoolService.findOne(school);
+    return this.schoolService.getSchool(school);
   }
 }

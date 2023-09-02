@@ -12,18 +12,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
-import { CreateUserDto, LoginUserDto } from './dto';
+import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
 import { RegisterUserDto } from './dto';
 import { School } from '../school/entities/school.entity';
 import { Role } from './entities/role.entity';
 import { ValidRoles } from './interfaces/valid-roles';
-import { UpdateSchoolDto } from '../school/dto/update-school.dto';
 import { UpdateStatusUserDto } from './dto/update-status-user.dto';
 import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
 import { SearchUserDto } from './dto/search-user.dto';
+import { FilesService } from 'src/files/files.service';
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -36,6 +36,7 @@ export class AuthService {
     private readonly roleRepository: Repository<Role>,
     private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
+    private readonly fileService: FilesService,
   ) {}
 
   async login(loginUserDto: LoginUserDto) {
@@ -52,19 +53,28 @@ export class AuthService {
         isOwner: true,
         isActive: true,
         roles: true,
+        photo: true,
       },
       relations: { school: true },
     });
-    if (!user) throw new UnauthorizedException('credentials are not valid');
+    if (!user)
+      throw new UnauthorizedException({
+        key: 'operations.CREDENTIALS_ARE_NO_VALIDS',
+      });
     if (!user.isActive)
-      throw new UnauthorizedException('inactive user - contact support');
+      throw new UnauthorizedException({ key: 'operations.USER.INACTIVE' });
 
     if (!bcrypt.compareSync(password, user.password))
-      throw new UnauthorizedException('Credentials are not valid');
+      throw new UnauthorizedException({
+        key: 'operations.CREDENTIALS_ARE_NO_VALIDS',
+      });
 
     delete user.password;
     const hasSchool = !!user.school;
     delete user.school;
+
+    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    user.photo = urlPhoto;
 
     return {
       success: true,
@@ -77,7 +87,8 @@ export class AuthService {
     const { email, password } = createAccountDto;
 
     const exitsEmail = await this.userRepository.findOneBy({ email });
-    if (exitsEmail) throw new BadRequestException('email alredy exits');
+    if (exitsEmail)
+      throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -113,6 +124,9 @@ export class AuthService {
     const hasSchool = !!user.school;
     delete user.school;
 
+    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    user.photo = urlPhoto;
+
     return {
       success: true,
       user: {
@@ -125,7 +139,8 @@ export class AuthService {
   async createUser(createUserDto: CreateUserDto, school: School) {
     const { email, password } = createUserDto;
     const exitsEmail = await this.userRepository.findOneBy({ email });
-    if (exitsEmail) throw new BadRequestException('email alredy exits');
+    if (exitsEmail)
+      throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
 
     try {
       const { roles, ...rest } = createUserDto;
@@ -159,7 +174,8 @@ export class AuthService {
       school: { id: schoolId },
     });
 
-    if (!dbUser) throw new NotFoundException('User not found');
+    if (!dbUser)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
     try {
       await this.userRepository.softDelete({ id: userId });
       return { success: true, message: 'User deleted' };
@@ -179,7 +195,8 @@ export class AuthService {
       school: { id: schoolId },
     });
 
-    if (!dbUser) throw new NotFoundException('user not found');
+    if (!dbUser)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
     const { status } = updateStatusUser;
     try {
       await this.userRepository.update(userId, { isActive: status });
@@ -197,7 +214,7 @@ export class AuthService {
     schoolId: number,
     searchUserDto: SearchUserDto,
   ) {
-    const { take, skip, page, name, role } = searchUserDto;
+    const { take, skip, page, name, role, photos } = searchUserDto;
 
     const pageOptionsDto: PageOptionsDto = {
       take,
@@ -225,7 +242,19 @@ export class AuthService {
       });
     }
     const itemCount = await preQueryBuilder.getCount();
-    const users = await preQueryBuilder.offset(skip).take(take).getMany();
+
+    let users: User[] = [];
+    const dbUsers = await preQueryBuilder.offset(skip).take(take).getMany();
+
+    if (photos) {
+      for (const user of dbUsers) {
+        const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+        user.photo = urlPhoto;
+        users.push(user);
+      }
+    } else {
+      users = dbUsers;
+    }
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     const data = new PageDto(users, pageMetaDto);
@@ -236,18 +265,35 @@ export class AuthService {
     };
   }
 
-  async updateProfile(id: number, updateUserDto: UpdateSchoolDto) {
+  async updateProfile(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+    file: Express.Multer.File,
+  ) {
     const user = await this.userRepository.preload({
-      id,
+      id: userId,
       ...updateUserDto,
     });
+    if (!user)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
 
-    if (!user) throw new NotFoundException('user not found');
     try {
-      await this.userRepository.save(user);
+      if (file) {
+        const { name } = await this.fileService.uploadS3(
+          file,
+          `user/${userId}/profile/`,
+          user.photo,
+        );
+        user.photo = name;
+      }
+
+      const dbUser = await this.userRepository.save(user);
+      const urlPhoto = await this.getPresignedUrl(dbUser.id, dbUser.photo);
+      dbUser.photo = urlPhoto;
+
       return {
         success: true,
-        message: 'User has been updated',
+        user: dbUser,
       };
     } catch (error) {
       this.handleDBException(error);
@@ -262,12 +308,24 @@ export class AuthService {
       },
     });
 
-    if (!teacher) throw new NotFoundException('Teacher not found');
+    if (!teacher)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
     const isTeacher = teacher.roles.find(
       (role) => role.slug === ValidRoles.teacher,
     );
-    if (!isTeacher) throw new ForbiddenException('User is not teacher');
+    if (!isTeacher)
+      throw new ForbiddenException({ key: 'operations.USER.IS_TEACHER' });
     return teacher;
+  }
+
+  private async getPresignedUrl(userId: number, photoName: string | null) {
+    let urlPhoto: string | null = null;
+    if (photoName) {
+      urlPhoto = await this.fileService.getPresignedUrlS3(
+        `user/${userId}/profile/${photoName}`,
+      );
+    }
+    return urlPhoto;
   }
 
   private getJwt(payload: JwtPayload) {
@@ -276,8 +334,7 @@ export class AuthService {
   }
 
   private handleDBException(error: any) {
-    // if (error.code == '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
-    throw new InternalServerErrorException('help');
+    throw new InternalServerErrorException('contact support');
   }
 }

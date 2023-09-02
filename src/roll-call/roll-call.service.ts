@@ -203,7 +203,9 @@ export class RollCallService {
       );
 
     if (dbGroupStudents.length !== groupStudentsIds.length)
-      throw new NotFoundException('Students not found in group');
+      throw new NotFoundException({
+        key: 'operations.GROUP.STUDENTS_NOT_FOUND',
+      });
 
     try {
       const rollCall: RollCall[] = [];
@@ -250,11 +252,13 @@ export class RollCallService {
     const dbRollCall = await this.rollCallRepository.findOneBy({
       id: rollCallId,
     });
-    if (!dbRollCall) throw new NotFoundException('rollcall not found');
+    if (!dbRollCall)
+      throw new NotFoundException({ key: 'operations.ROLLCALL.NOT_FOUND' });
 
     const groupId = dbRollCall.groupStudent.group.id;
     const dbGroup = await this.groupService.findOneBySchool(groupId, schoolId);
-    if (!dbGroup) throw new NotFoundException('rollcall not found');
+    if (!dbGroup)
+      throw new NotFoundException({ key: 'operations.ROLLCALL.NOT_FOUND' });
     return dbRollCall;
   }
 

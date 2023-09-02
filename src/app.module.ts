@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import {
   AcceptLanguageResolver,
   HeaderResolver,
@@ -17,6 +18,7 @@ import { StudentModule } from './student/student.module';
 import { GroupModule } from './group/group.module';
 import { RollCallModule } from './roll-call/roll-call.module';
 import { GroupStudentsModule } from './group-students/group-students.module';
+import { AllExceptionsFilter } from './common/helpers';
 
 @Module({
   imports: [
@@ -54,6 +56,11 @@ import { GroupStudentsModule } from './group-students/group-students.module';
     GroupStudentsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+  ],
 })
 export class AppModule {}

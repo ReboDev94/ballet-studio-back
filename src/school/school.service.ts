@@ -30,7 +30,9 @@ export class SchoolService {
   ) {
     const hasSchool = !!user.school;
     if (hasSchool)
-      throw new PreconditionFailedException('user alredy has school');
+      throw new PreconditionFailedException({
+        key: 'operations.USER.HAS_SCHOOL',
+      });
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -67,7 +69,8 @@ export class SchoolService {
       ...updateSchoolDto,
     });
 
-    if (!school) throw new NotFoundException('school not found');
+    if (!school)
+      throw new NotFoundException({ key: 'operations.SCHOOL.NOT_FOUND' });
 
     try {
       if (file) {
@@ -111,7 +114,8 @@ export class SchoolService {
 
   async findOne(schoolId: number, presignedUrl = false) {
     const dbSchool = await this.schoolRepository.findOneBy({ id: schoolId });
-    if (!dbSchool) throw new NotFoundException('school not found');
+    if (!dbSchool)
+      throw new NotFoundException({ key: 'operations.SCHOOL.NOT_FOUND' });
 
     if (presignedUrl) {
       dbSchool.logo = await this.generatePresignedUrlLogoSchool(

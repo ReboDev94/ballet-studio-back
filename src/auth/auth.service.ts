@@ -57,12 +57,17 @@ export class AuthService {
       },
       relations: { school: true },
     });
-    if (!user) throw new UnauthorizedException('credentials are not valid');
+    if (!user)
+      throw new UnauthorizedException({
+        key: 'operations.CREDENTIALS_ARE_NO_VALIDS',
+      });
     if (!user.isActive)
-      throw new UnauthorizedException('inactive user - contact support');
+      throw new UnauthorizedException({ key: 'operations.USER.INACTIVE' });
 
     if (!bcrypt.compareSync(password, user.password))
-      throw new UnauthorizedException('Credentials are not valid');
+      throw new UnauthorizedException({
+        key: 'operations.CREDENTIALS_ARE_NO_VALIDS',
+      });
 
     delete user.password;
     const hasSchool = !!user.school;
@@ -82,7 +87,8 @@ export class AuthService {
     const { email, password } = createAccountDto;
 
     const exitsEmail = await this.userRepository.findOneBy({ email });
-    if (exitsEmail) throw new BadRequestException('email alredy exits');
+    if (exitsEmail)
+      throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -133,7 +139,8 @@ export class AuthService {
   async createUser(createUserDto: CreateUserDto, school: School) {
     const { email, password } = createUserDto;
     const exitsEmail = await this.userRepository.findOneBy({ email });
-    if (exitsEmail) throw new BadRequestException('email alredy exits');
+    if (exitsEmail)
+      throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
 
     try {
       const { roles, ...rest } = createUserDto;
@@ -167,7 +174,8 @@ export class AuthService {
       school: { id: schoolId },
     });
 
-    if (!dbUser) throw new NotFoundException('User not found');
+    if (!dbUser)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
     try {
       await this.userRepository.softDelete({ id: userId });
       return { success: true, message: 'User deleted' };
@@ -187,7 +195,8 @@ export class AuthService {
       school: { id: schoolId },
     });
 
-    if (!dbUser) throw new NotFoundException('user not found');
+    if (!dbUser)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
     const { status } = updateStatusUser;
     try {
       await this.userRepository.update(userId, { isActive: status });
@@ -265,7 +274,8 @@ export class AuthService {
       id: userId,
       ...updateUserDto,
     });
-    if (!user) throw new NotFoundException('user not found');
+    if (!user)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
 
     try {
       if (file) {
@@ -298,11 +308,13 @@ export class AuthService {
       },
     });
 
-    if (!teacher) throw new NotFoundException('Teacher not found');
+    if (!teacher)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
     const isTeacher = teacher.roles.find(
       (role) => role.slug === ValidRoles.teacher,
     );
-    if (!isTeacher) throw new ForbiddenException('User is not teacher');
+    if (!isTeacher)
+      throw new ForbiddenException({ key: 'operations.USER.IS_TEACHER' });
     return teacher;
   }
 
@@ -322,8 +334,7 @@ export class AuthService {
   }
 
   private handleDBException(error: any) {
-    // if (error.code == '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
-    throw new InternalServerErrorException('help');
+    throw new InternalServerErrorException('contact support');
   }
 }

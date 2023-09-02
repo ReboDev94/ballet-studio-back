@@ -197,7 +197,10 @@ export class StudentService {
     const student = await this.studentRepository.findOne({
       where: { school: { id: schoolId }, id: studentId },
     });
-    if (!student) throw new NotFoundException('student not found');
+    if (!student)
+      throw new NotFoundException({
+        key: 'operations.SCHOOL.STUDENTS_NOT_FOUND',
+      });
 
     if (signedAvatar)
       student.avatar = await this.getUrlSignedAvatar(

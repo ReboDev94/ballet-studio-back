@@ -6,7 +6,7 @@
         "NOT_EMPTY": "El campo $t(attributes.{property}) debe contener al menos 1 elemento.",
         "STRING": "El campo $t(attributes.{property}) debe ser un conjunto de caracteres.",
         "OBJECT": "El campo $t(attributes.{property}) debe ser un conjunto de objetos",
-        "INT":"El campo $t(attributes.{property}) debe ser un conjunto de enteros"
+        "INT": "El campo $t(attributes.{property}) debe ser un conjunto de enteros"
     },
     "MIN": {
         "INT": "El tamaño de $t(attributes.{property}) debe ser de al menos {constraints.0}.",
@@ -24,6 +24,5 @@
     "DATE": {
         "STRING": "El campo $t(attributes.{property}) deber ser una fecha valida."
     },
-    "HOUR": "El formato de hora no es valido",
-    "FILE_NOT_SUPPORT": "Archivo no soportado"
+    "HOUR": "El formato de hora no es valido"
 }

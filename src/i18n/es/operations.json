@@ -1,0 +1,32 @@
+{
+    "FILE": {
+        "EMPTY": "Archivo vacio.",
+        "NOT_SUPPORT": "Archivo no soportado."
+    },
+    "EMAIL": {
+        "ALREDY_EXITS": "El correo electrónico ya existe."
+    },
+    "USER": {
+        "NOT_FOUND": "El usuario no existe.",
+        "INACTIVE": "El usuario esta inactivo.",
+        "IS_TEACHER": "El usuario no es un maestro.",
+        "HAS_SCHOOL": "EL usuario ya tiene una escuela.",
+        "HAS_NOT_SCHOOL": "El usuario no tiene una escuela."
+    },
+    "ROLES": {
+        "NOT_FOUND": "EL usuario necesita un rol valido [{roles}]"
+    },
+    "GROUP": {
+        "NOT_FOUND": "El grupo no existe.",
+        "STUDENTS_NOT_FOUND": "Algunos estudiantes no existen."
+    },
+    "ROLLCALL": {
+        "NOT_FOUND": "La lista de asistencia no existe"
+    },
+    "SCHOOL": {
+        "NOT_FOUND": "La escuela no existe.",
+        "STUDENTS_NOT_FOUND": "Algunos estudiantes no existen."
+    },
+    "CREDENTIALS_ARE_NO_VALIDS": "Credenciales no validas.",
+    "TOKEN_NOT_VALID": "El token no es valido."
+}

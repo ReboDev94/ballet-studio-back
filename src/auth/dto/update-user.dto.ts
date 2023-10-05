@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateUserDto {
   @IsString({ message: 'validation.STRING' })
@@ -8,6 +8,10 @@ export class UpdateUserDto {
   @IsString({ message: 'validation.STRING' })
   @IsOptional()
   phone: string;
+
+  @IsString({ message: 'validation.STRING' })
+  @IsEmail({}, { message: 'validation.EMAIL' })
+  email: string;
 
   @IsString({ message: 'validation.STRING' })
   @IsOptional()

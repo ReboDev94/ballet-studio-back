@@ -266,28 +266,37 @@ export class AuthService {
   }
 
   async updateProfile(
-    userId: number,
+    user: User,
     updateUserDto: UpdateUserDto,
     file: Express.Multer.File,
   ) {
-    const user = await this.userRepository.preload({
-      id: userId,
+    const userPre = await this.userRepository.preload({
+      id: user.id,
       ...updateUserDto,
     });
-    if (!user)
+
+    if (userPre.email !== user.email) {
+      const userExist = await this.userRepository.findOneBy({
+        email: userPre.email,
+      });
+      if (userExist)
+        throw new NotFoundException({ key: 'operations.USER.FOUND' });
+    }
+
+    if (!userPre)
       throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
 
     try {
       if (file) {
         const { name } = await this.fileService.uploadS3(
           file,
-          `user/${userId}/profile/`,
-          user.photo,
+          `user/${userPre.id}/profile/`,
+          userPre.photo,
         );
-        user.photo = name;
+        userPre.photo = name;
       }
 
-      const dbUser = await this.userRepository.save(user);
+      const dbUser = await this.userRepository.save(userPre);
       const urlPhoto = await this.getPresignedUrl(dbUser.id, dbUser.photo);
       dbUser.photo = urlPhoto;
 

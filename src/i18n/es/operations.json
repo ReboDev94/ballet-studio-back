@@ -7,6 +7,7 @@
         "ALREDY_EXITS": "El correo electrónico ya existe."
     },
     "USER": {
+        "FOUND":"El email ya existe",
         "NOT_FOUND": "El usuario no existe.",
         "INACTIVE": "El usuario esta inactivo.",
         "IS_TEACHER": "El usuario no es un maestro.",

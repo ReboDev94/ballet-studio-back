@@ -90,11 +90,11 @@ export class AuthController {
     }),
   )
   updateProfile(
-    @GetUser('id') id: number,
+    @GetUser() user: User,
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.authService.updateProfile(id, updateUserDto, file);
+    return this.authService.updateProfile(user, updateUserDto, file);
   }
 
   @Get('users')

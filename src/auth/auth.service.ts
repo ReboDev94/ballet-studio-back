@@ -214,7 +214,7 @@ export class AuthService {
     schoolId: number,
     searchUserDto: SearchUserDto,
   ) {
-    const { take, skip, page, name, roles, photos } = searchUserDto;
+    const { take, skip, page, name, roles, photos, order } = searchUserDto;
 
     const pageOptionsDto: PageOptionsDto = {
       take,
@@ -234,6 +234,7 @@ export class AuthService {
     const queryBuilder = this.userRepository.createQueryBuilder('user');
     const preQueryBuilder = queryBuilder
       .where(query, conditions)
+      .orderBy('user.name', order)
       .leftJoinAndSelect('user.roles', 'roles');
 
     if (roles) {

@@ -214,7 +214,7 @@ export class AuthService {
     schoolId: number,
     searchUserDto: SearchUserDto,
   ) {
-    const { take, skip, page, name, role, photos } = searchUserDto;
+    const { take, skip, page, name, roles, photos } = searchUserDto;
 
     const pageOptionsDto: PageOptionsDto = {
       take,
@@ -236,9 +236,9 @@ export class AuthService {
       .where(query, conditions)
       .leftJoinAndSelect('user.roles', 'roles');
 
-    if (role) {
+    if (roles) {
       preQueryBuilder.andWhere('roles.slug IN (:...roleSlug)', {
-        roleSlug: [role],
+        roleSlug: roles,
       });
     }
     const itemCount = await preQueryBuilder.getCount();

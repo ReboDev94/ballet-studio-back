@@ -13,7 +13,7 @@ export class UpdateUserDto {
   @IsEmail({}, { message: 'validation.EMAIL' })
   email: string;
 
-  @IsString({ message: 'validation.STRING' })
-  @IsOptional()
-  photo: string | null;
+  // @IsString({ message: 'validation.STRING' })
+  // @IsOptional()
+  // photo: string | null;
 }

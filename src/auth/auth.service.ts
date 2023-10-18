@@ -24,6 +24,7 @@ import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
 import { SearchUserDto } from './dto/search-user.dto';
 import { FilesService } from 'src/files/files.service';
+import { generatePassword } from './utils';
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -137,7 +138,8 @@ export class AuthService {
   }
 
   async createUser(createUserDto: CreateUserDto, school: School) {
-    const { email, password } = createUserDto;
+    const { email } = createUserDto;
+    const password = generatePassword();
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail)
       throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
@@ -154,9 +156,12 @@ export class AuthService {
         roles: dbRoles,
         password: bcrypt.hashSync(password, 10),
         school,
+        isActive: false,
       });
 
       const dbUser = await this.userRepository.save(user);
+
+      /* TODO:SEND EMAIL */
 
       return {
         success: true,

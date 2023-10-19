@@ -8,6 +8,7 @@
         "OBJECT": "El campo $t(attributes.{property}) debe ser un conjunto de objetos",
         "INT": "El campo $t(attributes.{property}) debe ser un conjunto de enteros"
     },
+    "IS_OBJECT":"El campo $t(attributes.{property}) debe ser un objeto.",
     "MIN": {
         "INT": "El tamaño de $t(attributes.{property}) debe ser de al menos {constraints.0}.",
         "STRING": "El campo $t(attributes.{property}) debe contener al menos {constraints.0} caracteres."

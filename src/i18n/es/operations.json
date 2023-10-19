@@ -4,7 +4,8 @@
         "NOT_SUPPORT": "Archivo no soportado."
     },
     "EMAIL": {
-        "ALREDY_EXITS": "El correo electrónico ya existe."
+        "ALREDY_EXITS": "El correo electrónico ya existe.",
+        "NO_SENDING":"El correo electrónico no pudo ser entregado."
     },
     "USER": {
         "FOUND":"El email ya existe",

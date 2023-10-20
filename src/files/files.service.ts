@@ -66,7 +66,7 @@ export class FilesService {
   async getPresignedUrlS3(fileName: string, expire = 900) {
     const s3 = new S3();
     try {
-      const result = await s3.getSignedUrlPromise('getObject', {
+      const result = s3.getSignedUrl('getObject', {
         Key: fileName,
         Bucket: this.AWS_BUCKET,
         Expires: expire,

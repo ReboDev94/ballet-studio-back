@@ -23,8 +23,9 @@ import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
 import { SearchUserDto } from './dto/search-user.dto';
-import { FilesService } from 'src/files/files.service';
 import { generatePassword } from './utils';
+import { MailService } from 'src/mail/mail.service';
+import { FilesAuthService } from 'src/files/files.auth.service';
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -37,7 +38,8 @@ export class AuthService {
     private readonly roleRepository: Repository<Role>,
     private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
-    private readonly fileService: FilesService,
+    private readonly fileAuthService: FilesAuthService,
+    private readonly mailService: MailService,
   ) {}
 
   async login(loginUserDto: LoginUserDto) {
@@ -74,7 +76,10 @@ export class AuthService {
     const hasSchool = !!user.school;
     delete user.school;
 
-    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    const urlPhoto = await this.fileAuthService.generatePresignedUrlLogoUser(
+      user.id,
+      user.photo,
+    );
     user.photo = urlPhoto;
 
     return {
@@ -125,7 +130,10 @@ export class AuthService {
     const hasSchool = !!user.school;
     delete user.school;
 
-    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    const urlPhoto = await this.fileAuthService.generatePresignedUrlLogoUser(
+      user.id,
+      user.photo,
+    );
     user.photo = urlPhoto;
 
     return {
@@ -161,7 +169,7 @@ export class AuthService {
 
       const dbUser = await this.userRepository.save(user);
 
-      /* TODO:SEND EMAIL */
+      await this.mailService.sendConfirmationEmail(dbUser);
 
       return {
         success: true,
@@ -254,7 +262,11 @@ export class AuthService {
 
     if (photos) {
       for (const user of dbUsers) {
-        const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+        const urlPhoto =
+          await this.fileAuthService.generatePresignedUrlLogoUser(
+            user.id,
+            user.photo,
+          );
         user.photo = urlPhoto;
         users.push(user);
       }
@@ -294,16 +306,19 @@ export class AuthService {
 
     try {
       if (file) {
-        const { name } = await this.fileService.uploadS3(
+        const { name } = await this.fileAuthService.uploadLogoUser(
           file,
-          `user/${userPre.id}/profile/`,
+          userPre.id,
           userPre.photo,
         );
         userPre.photo = name;
       }
 
       const dbUser = await this.userRepository.save(userPre);
-      const urlPhoto = await this.getPresignedUrl(dbUser.id, dbUser.photo);
+      const urlPhoto = await this.fileAuthService.generatePresignedUrlLogoUser(
+        dbUser.id,
+        dbUser.photo,
+      );
       dbUser.photo = urlPhoto;
 
       return {
@@ -331,16 +346,6 @@ export class AuthService {
     if (!isTeacher)
       throw new ForbiddenException({ key: 'operations.USER.IS_TEACHER' });
     return teacher;
-  }
-
-  private async getPresignedUrl(userId: number, photoName: string | null) {
-    let urlPhoto: string | null = null;
-    if (photoName) {
-      urlPhoto = await this.fileService.getPresignedUrlS3(
-        `user/${userId}/profile/${photoName}`,
-      );
-    }
-    return urlPhoto;
   }
 
   private getJwt(payload: JwtPayload) {

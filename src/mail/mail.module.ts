@@ -6,7 +6,6 @@ import { MailtrapTransport } from 'mailtrap';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  // controllers: [MailController],
   imports: [
     ConfigModule,
     MailerModule.forRootAsync({

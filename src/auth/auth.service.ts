@@ -7,12 +7,20 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+
+import { fromUnixTime, isPast } from 'date-fns';
+import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { User } from './entities/user.entity';
-import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
+import {
+  ChangePasswordDto,
+  CreateUserDto,
+  LoginUserDto,
+  UpdateUserDto,
+} from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
 import { RegisterUserDto } from './dto';
 import { School } from '../school/entities/school.entity';
@@ -26,6 +34,8 @@ import { SearchUserDto } from './dto/search-user.dto';
 import { generatePassword } from './utils';
 import { MailService } from 'src/mail/mail.service';
 import { FilesAuthService } from 'src/files/files.auth.service';
+import { FullResetPassword } from './interfaces/reset-password';
+
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -109,6 +119,7 @@ export class AuthService {
         email,
         password: bcrypt.hashSync(password, 10),
         isOwner: true,
+        isActive: false,
         roles: [role],
       });
 
@@ -154,30 +165,59 @@ export class AuthService {
 
     try {
       const { roles, ...rest } = createUserDto;
-
       const dbRoles = await this.roleRepository.find({
         where: { slug: In(roles) },
       });
 
+      const { expire, token, tokenEmail } = this.genereateResetData();
       const user = this.userRepository.create({
         ...rest,
         roles: dbRoles,
         password: bcrypt.hashSync(password, 10),
         school,
-        isActive: false,
+        isActive: true,
+        reset: { expire, token },
       });
-
       const dbUser = await this.userRepository.save(user);
-
-      await this.mailService.sendConfirmationEmail(dbUser);
+      await this.mailService.sendResetPassword(dbUser, tokenEmail);
 
       return {
         success: true,
-        user: dbUser,
       };
     } catch (error) {
       this.handleDBException(error);
     }
+  }
+
+  async changePassword(changePassword: ChangePasswordDto) {
+    const { email, token: tokenP, password } = changePassword;
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    const dbUser = await queryBuilder
+      .select(['user.id', 'user.reset'])
+      .where('email = :email', { email })
+      .getOne();
+
+    if (!dbUser || !dbUser.reset)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
+
+    const { token, expire } = dbUser.reset;
+    const pastDueToken = isPast(expire);
+
+    if (pastDueToken)
+      throw new NotFoundException({ key: 'operations.TOKEN_EXPIRE' });
+
+    const isValid = bcrypt.compareSync(tokenP, token);
+
+    if (!isValid)
+      throw new BadRequestException({ key: 'operations.TOKEN_EXPIRE' });
+
+    await this.userRepository.update(dbUser.id, {
+      reset: null,
+      password: bcrypt.hashSync(password, 10),
+    });
+
+    return { success: true };
   }
 
   async deleteUser(userId: number, schoolId: number) {
@@ -348,8 +388,19 @@ export class AuthService {
     return teacher;
   }
 
-  private getJwt(payload: JwtPayload) {
-    const token = this.jwtService.sign(payload);
+  private genereateResetData(): FullResetPassword {
+    const tokenResetPassword = randomBytes(32).toString('hex');
+    const hashToken = bcrypt.hashSync(tokenResetPassword, 10);
+    const dateNow = new Date();
+    const expire = new Date(
+      new Date(dateNow).setHours(dateNow.getHours() + 24),
+    ).getTime();
+
+    return { expire, token: hashToken, tokenEmail: tokenResetPassword };
+  }
+
+  private getJwt(payload: JwtPayload, options?: JwtSignOptions) {
+    const token = this.jwtService.sign(payload, options);
     return token;
   }
 

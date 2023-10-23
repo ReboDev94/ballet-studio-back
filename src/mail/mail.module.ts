@@ -4,10 +4,12 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { MailService } from './mail.service';
 import { MailtrapTransport } from 'mailtrap';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   imports: [
     ConfigModule,
+    FilesModule,
     MailerModule.forRootAsync({
       useFactory: async (config: ConfigService) => {
         const isDevelopment = config.get('NODE_ENV') === 'development';

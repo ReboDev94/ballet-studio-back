@@ -15,10 +15,11 @@
     },
     "MAX": {
         "INT": "$t(attributes.{property}) no debe ser mayor que {constraints.0}.",
-        "STRING": "El campo $t(attributes.{property}) no debe contener mayor de {constraints.0} caracteres."
+        "STRING": "El campo $t(attributes.{property}) no debe contener mas de {constraints.0} caracteres."
     },
     "EMAIL": "El campo $t(attributes.{property}) debe ser un correo electrónico valido.",
-    "PASSWORD": "El campo $t(attributes.{property}) debe contener al menos una letras mayúscula y un número.",
+    "PASSWORD": "El campo $t(attributes.{property}) debe contener al menos una letra mayúscula, una minuscula, un número y un caracter especial ('#', '$', '@', '!', '%', '&', '*', o '?').",
+    "CONFIRM_PASSWORD":"El campo $t(attributes.{property}) debe ser igual a {constraints.0}",
     "ENUM": "El campo $t(attributes.{property}) es inválido.",
     "BOOLEAN": "El campo $t(attributes.{property}) deber ser de tipo boolean.",
     "INT": "El campo $t(attributes.{property}) deber ser de tipo entero.",

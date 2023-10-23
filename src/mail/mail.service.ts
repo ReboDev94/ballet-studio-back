@@ -4,9 +4,12 @@ import { createMailDto } from './dto/createMailDto';
 import { User } from 'src/auth/entities';
 import { ConfigService } from '@nestjs/config';
 import { ucwords } from 'src/common/utils';
+import { FilesSchoolService } from 'src/files/files.school.service';
 
 @Injectable()
 export class MailService {
+  private FRONT_URL_RESET_PASSWORD: string;
+  private FRONT_URL_CONFIRM_ACCOUNT: string;
   private BUSINESS_DATA = {
     businessName: '',
     businessUrl: '',
@@ -17,7 +20,16 @@ export class MailService {
   constructor(
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
+    private readonly fileSchoolService: FilesSchoolService,
   ) {
+    this.FRONT_URL_CONFIRM_ACCOUNT = `${this.configService.get(
+      'FRONT_URL',
+    )}/${this.configService.get('FRONT_URL_CONFIRM_ACCOUNT')}`;
+
+    this.FRONT_URL_RESET_PASSWORD = `${this.configService.get(
+      'FRONT_URL',
+    )}/${this.configService.get('FRONT_URL_RESET_PASSWORD')}`;
+
     this.BUSINESS_DATA = {
       businessName: this.configService.get('BUSINESS_NAME'),
       businessUrl: this.configService.get('BUSINESS_URL'),
@@ -34,12 +46,11 @@ export class MailService {
         ...data,
       });
     } catch (error) {
-      console.log(error);
       throw new BadRequestException({ key: 'operations.EMAIL.NO_SENDING' });
     }
   }
 
-  async sendConfirmationEmail(user: User) {
+  private async defaultData(user: User) {
     const {
       businessLogo,
       businessName,
@@ -49,31 +60,64 @@ export class MailService {
     const {
       email,
       name: userName,
-      school: { id: schoolId, name: schoolName, logo: schoolLogo },
+      school: { id: schoolId, logo: schoolLogo, name: schoolName },
     } = user;
 
-    console.log(user);
-    return user;
-    // await this.sendEmailCustomTemplate({
-    //   to: email,
-    //   subject: 'Confirma tu correo electrónico.',
-    //   template: 'confirmation',
-    //   context: {
-    //     schoolName: schoolName.toUpperCase(),
-    //     schoolLogo,
-    //     userName: ucwords(userName),
-    //     anio: new Date().getFullYear(),
-    //     businessName,
-    //     businessUrl,
-    //     businessPrivacyAndConditions,
-    //     businessLogo,
-    //     urlConfirm: '' /* TODO:FALTA CREAR */,
-    //   },
-    // });
+    const schoolLogoBase64 =
+      await this.fileSchoolService.generateLogoSchoolBase64(
+        schoolId,
+        schoolLogo,
+      );
 
-    /* TODO:
-    -LOGO DE LA ESCUELA EXTRAER DE AWS
-    Al momento de crear el usuario tambien crear un token de acceso a confirmar
-    CREAR URL CONFIRM- AGREGAR PARAMETRO A TABLA USER CON EL TOKEN */
+    return {
+      to: email,
+      businessLogo,
+      businessName,
+      businessPrivacyAndConditions,
+      businessUrl,
+      context: {
+        schoolName: schoolName.toUpperCase(),
+        schoolLogo: schoolLogoBase64,
+        userName: ucwords(userName),
+        anio: new Date().getFullYear(),
+        businessName,
+        businessUrl,
+        businessPrivacyAndConditions,
+        businessLogo,
+      },
+    };
+  }
+
+  async sendResetPassword(user: User, token: string) {
+    const urlReset = `${this.FRONT_URL_RESET_PASSWORD.replace(
+      ':token',
+      token,
+    )}?email=${user.email}`;
+
+    const data = await this.defaultData(user);
+    await this.sendEmailCustomTemplate({
+      ...data,
+      subject: 'Restablece tu contraseña',
+      template: 'reset-password',
+      context: {
+        ...data.context,
+        urlReset,
+      },
+    });
+  }
+
+  async sendConfirmationEmail(user: User, token: string) {
+    const urlConfirm = this.FRONT_URL_CONFIRM_ACCOUNT.replace(':token', token);
+
+    const data = await this.defaultData(user);
+    await this.sendEmailCustomTemplate({
+      ...data,
+      subject: 'Confirma tu correo electrónico.',
+      template: 'confirmation',
+      context: {
+        ...data.context,
+        urlConfirm,
+      },
+    });
   }
 }

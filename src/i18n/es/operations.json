@@ -30,5 +30,6 @@
         "STUDENTS_NOT_FOUND": "Algunos estudiantes no existen."
     },
     "CREDENTIALS_ARE_NO_VALIDS": "Credenciales no validas.",
-    "TOKEN_NOT_VALID": "El token no es valido."
+    "TOKEN_NOT_VALID": "El token no es valido.",
+    "TOKEN_EXPIRE":"El token ha expirado."
 }

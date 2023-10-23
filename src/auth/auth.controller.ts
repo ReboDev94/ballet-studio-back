@@ -13,6 +13,7 @@ import {
 
 import { AuthService } from './auth.service';
 import {
+  ChangePasswordDto,
   CreateUserDto,
   LoginUserDto,
   UpdateStatusUserDto,
@@ -56,6 +57,11 @@ export class AuthController {
     @Body() createUserDto: CreateUserDto,
   ) {
     return this.authService.createUser(createUserDto, school);
+  }
+
+  @Post('reset/password')
+  changePassword(@Body() changePassword: ChangePasswordDto) {
+    return this.authService.changePassword(changePassword);
   }
 
   @Delete('user/:userId')

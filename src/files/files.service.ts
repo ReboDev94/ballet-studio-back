@@ -2,13 +2,19 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidV4 } from 'uuid';
 import { S3 } from 'aws-sdk';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import fs from 'fs';
 
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger('FileService');
 
   private AWS_BUCKET: string;
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
+  ) {
     this.AWS_BUCKET = this.configService.get('AWS_BUCKET_NAME');
   }
 
@@ -63,7 +69,7 @@ export class FilesService {
     }
   }
 
-  async getPresignedUrlS3(fileName: string, expire = 900) {
+  async getPresignedUrlS3(fileName: string, expire: number) {
     const s3 = new S3();
     try {
       const result = s3.getSignedUrl('getObject', {
@@ -76,5 +82,19 @@ export class FilesService {
       this.logger.error(error.message);
       return null;
     }
+  }
+
+  async convertFileAwsBase64(url: string) {
+    const { data, headers } = await this.httpService.axiosRef({
+      url,
+      method: 'GET',
+      responseType: 'arraybuffer',
+    });
+
+    const typeFile = headers['content-type'];
+    const fileBuffer = Buffer.from(data, 'binary').toString('base64');
+    const base64File = `data:${typeFile};base64,${fileBuffer}`;
+
+    return base64File;
   }
 }

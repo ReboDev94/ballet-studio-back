@@ -5,10 +5,15 @@ import { FilesService } from './files.service';
 export class FilesAuthService {
   constructor(private readonly fileService: FilesService) {}
 
-  async generatePresignedUrlLogoUser(userId: number, photoName: string | null) {
+  async generatePresignedUrlLogoUser(
+    userId: number,
+    photoName: string | null,
+    expire = 900,
+  ) {
     const url = photoName
       ? await this.fileService.getPresignedUrlS3(
           `user/${userId}/profile/${photoName}`,
+          expire,
         )
       : null;
     return url;

@@ -19,6 +19,7 @@ import {
   ChangePasswordDto,
   CreateUserDto,
   LoginUserDto,
+  SendEmailResetPasswordDto,
   UpdateUserDto,
 } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
@@ -216,6 +217,25 @@ export class AuthService {
       reset: null,
       password: bcrypt.hashSync(password, 10),
     });
+
+    return { success: true };
+  }
+
+  async sendEmailResetPassword(createSendEmail: SendEmailResetPasswordDto) {
+    const { email } = createSendEmail;
+    const userExist = await this.userRepository.findOne({
+      relations: { school: true },
+      where: { email },
+    });
+
+    if (!userExist)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
+
+    const { expire, token, tokenEmail } = this.genereateResetData();
+    await this.userRepository.update(userExist.id, {
+      reset: { expire, token },
+    });
+    await this.mailService.sendResetPassword(userExist, tokenEmail);
 
     return { success: true };
   }

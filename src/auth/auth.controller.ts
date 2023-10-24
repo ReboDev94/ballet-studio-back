@@ -16,6 +16,7 @@ import {
   ChangePasswordDto,
   CreateUserDto,
   LoginUserDto,
+  SendEmailResetPasswordDto,
   UpdateStatusUserDto,
   UpdateUserDto,
 } from './dto';
@@ -57,6 +58,11 @@ export class AuthController {
     @Body() createUserDto: CreateUserDto,
   ) {
     return this.authService.createUser(createUserDto, school);
+  }
+
+  @Post('send/reset/password')
+  sendEmailResetPassword(@Body() createSendEmail: SendEmailResetPasswordDto) {
+    return this.authService.sendEmailResetPassword(createSendEmail);
   }
 
   @Post('reset/password')

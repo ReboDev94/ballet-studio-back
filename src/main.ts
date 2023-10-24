@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
 import { AppModule } from './app.module';
-import { config } from 'aws-sdk';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,11 +25,11 @@ async function bootstrap() {
       },
     }),
   );
-  config.update({
-    accessKeyId: process.env.AWS_KEY,
-    secretAccessKey: process.env.AWS_SECRET,
-    region: process.env.AWS_REGION,
-  });
+  // config.update({
+  //   accessKeyId: process.env.AWS_KEY,
+  //   secretAccessKey: process.env.AWS_SECRET,
+  //   region: process.env.AWS_REGION,
+  // });
   await app.listen(3000);
 }
 

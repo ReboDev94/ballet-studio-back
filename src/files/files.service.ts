@@ -1,22 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { v4 as uuidV4 } from 'uuid';
-import { S3 } from 'aws-sdk';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import fs from 'fs';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import { v4 as uuidV4 } from 'uuid';
 
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger('FileService');
+  private readonly s3Client = new S3Client({
+    region: this.configService.getOrThrow('AWS_REGION'),
+    credentials: {
+      accessKeyId: this.configService.getOrThrow('AWS_KEY'),
+      secretAccessKey: this.configService.getOrThrow('AWS_SECRET'),
+    },
+  });
+  private readonly AWS_BUCKET =
+    this.configService.getOrThrow('AWS_BUCKET_NAME');
 
-  private AWS_BUCKET: string;
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
-  ) {
-    this.AWS_BUCKET = this.configService.get('AWS_BUCKET_NAME');
-  }
+  ) {}
 
   async uploadS3(
     file: Express.Multer.File,
@@ -26,22 +36,18 @@ export class FilesService {
     const { buffer, originalname, mimetype } = file;
     const [, fileType] = originalname.split('.');
     const fileName = filename ? filename : `${uuidV4()}.${fileType}`;
-    const s3 = new S3();
+
+    const command = new PutObjectCommand({
+      Bucket: this.AWS_BUCKET,
+      Body: buffer,
+      Key: `${folder}${fileName}`,
+      ContentType: mimetype,
+    });
 
     try {
-      const uploadResult = await s3
-        .upload({
-          Bucket: this.AWS_BUCKET,
-          Body: buffer,
-          Key: `${folder}${fileName}`,
-          ContentType: mimetype,
-        })
-        .promise();
-
+      await this.s3Client.send(command);
       return {
         name: fileName,
-        key: uploadResult.Key,
-        url: uploadResult.Location,
       };
     } catch (error) {
       this.logger.error(error.message);
@@ -50,15 +56,12 @@ export class FilesService {
   }
 
   async deleteS3(fileName: string) {
-    const s3 = new S3();
+    const command = new DeleteObjectCommand({
+      Bucket: this.AWS_BUCKET,
+      Key: fileName,
+    });
     try {
-      await s3
-        .deleteObject({
-          Key: fileName,
-          Bucket: this.AWS_BUCKET,
-        })
-        .promise();
-
+      await this.s3Client.send(command);
       return {
         success: true,
         message: 'file deleted',
@@ -70,14 +73,17 @@ export class FilesService {
   }
 
   async getPresignedUrlS3(fileName: string, expire: number) {
-    const s3 = new S3();
     try {
-      const result = s3.getSignedUrl('getObject', {
-        Key: fileName,
+      const command = new GetObjectCommand({
         Bucket: this.AWS_BUCKET,
-        Expires: expire,
+        Key: fileName,
       });
-      return result;
+
+      const url = await getSignedUrl(this.s3Client, command, {
+        expiresIn: expire,
+      });
+
+      return url;
     } catch (error) {
       this.logger.error(error.message);
       return null;

@@ -1,9 +1,10 @@
 import { IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PageMetaDto } from './page-meta.dto';
+import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class PageDto<T> {
-  @IsArray({ message: 'validation.IS_ARRAY' })
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
   readonly data: T[];
 
   @Type(() => PageMetaDto)

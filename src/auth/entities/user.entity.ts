@@ -46,12 +46,18 @@ export class User {
   @Column('bool', { default: true })
   isActive: boolean;
 
+  @Column('bool', { default: true })
+  confirmPassword: boolean;
+
   @Column('jsonb', {
     nullable: true,
     default: null,
     select: false,
   })
   reset: ResetPassword;
+
+  @Column('jsonb', { nullable: true, default: null, select: false })
+  confirm: ResetPassword;
 
   @ManyToMany(() => Role, (role) => role.id, { eager: true, nullable: false })
   @JoinTable()

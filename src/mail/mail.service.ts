@@ -57,24 +57,21 @@ export class MailService {
       businessPrivacyAndConditions,
       businessUrl,
     } = this.BUSINESS_DATA;
-    const {
-      email,
-      name: userName,
-      school: { id: schoolId, logo: schoolLogo, name: schoolName },
-    } = user;
+    const { email, name: userName } = user;
 
-    const schoolLogoBase64 =
-      await this.fileSchoolService.generateLogoSchoolBase64(
+    let schoolLogoBase64 = '';
+    let schoolName = '';
+    if (user.school) {
+      const { id: schoolId, logo: schoolLogo, name } = user.school;
+      schoolName = name;
+      schoolLogoBase64 = await this.fileSchoolService.generateLogoSchoolBase64(
         schoolId,
         schoolLogo,
       );
+    }
 
     return {
       to: email,
-      businessLogo,
-      businessName,
-      businessPrivacyAndConditions,
-      businessUrl,
       context: {
         schoolName: schoolName.toUpperCase(),
         schoolLogo: schoolLogoBase64,
@@ -107,7 +104,10 @@ export class MailService {
   }
 
   async sendConfirmationEmail(user: User, token: string) {
-    const urlConfirm = this.FRONT_URL_CONFIRM_ACCOUNT.replace(':token', token);
+    const urlConfirm = `${this.FRONT_URL_CONFIRM_ACCOUNT.replace(
+      ':token',
+      token,
+    )}?email=${user.email}`;
 
     const data = await this.defaultData(user);
     await this.sendEmailCustomTemplate({

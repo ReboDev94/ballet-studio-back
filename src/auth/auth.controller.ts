@@ -14,6 +14,7 @@ import {
 import { AuthService } from './auth.service';
 import {
   ChangePasswordDto,
+  ConfirmEmailDto,
   CreateUserDto,
   LoginUserDto,
   SendEmailResetPasswordDto,
@@ -43,6 +44,11 @@ export class AuthController {
   @Post('register')
   register(@Body() createAccountDto: RegisterUserDto) {
     return this.authService.register(createAccountDto);
+  }
+
+  @Post('confirm/email')
+  confirmEmail(@Body() createConfirmEmail: ConfirmEmailDto) {
+    return this.authService.confirmEmail(createConfirmEmail);
   }
 
   @Get('user')

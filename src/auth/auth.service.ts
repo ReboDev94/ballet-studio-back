@@ -8,7 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-import { fromUnixTime, isPast } from 'date-fns';
+import { isPast } from 'date-fns';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { DataSource, In, Repository } from 'typeorm';
@@ -17,6 +17,7 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { User } from './entities/user.entity';
 import {
   ChangePasswordDto,
+  ConfirmEmailDto,
   CreateUserDto,
   LoginUserDto,
   SendEmailResetPasswordDto,
@@ -66,6 +67,7 @@ export class AuthService {
         email: true,
         isOwner: true,
         isActive: true,
+        confirmPassword: true,
         roles: true,
         photo: true,
       },
@@ -77,6 +79,11 @@ export class AuthService {
       });
     if (!user.isActive)
       throw new UnauthorizedException({ key: 'operations.USER.INACTIVE' });
+
+    if (!user.confirmPassword)
+      throw new UnauthorizedException({
+        key: 'operations.USER.CONFIRM_PASSWORD',
+      });
 
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException({
@@ -105,7 +112,9 @@ export class AuthService {
 
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail)
-      throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
+      throw new BadRequestException({
+        key: 'operations.EMAIL.ALREDY_EXITS',
+      });
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -116,16 +125,23 @@ export class AuthService {
         slug: this.DEFAULT_ROLE,
       });
 
+      const { expire, token, tokenEmail } = this.genereateResetData();
+
       const user = this.userRepository.create({
         email,
         password: bcrypt.hashSync(password, 10),
         isOwner: true,
-        isActive: false,
+        isActive: true,
+        confirmPassword: false,
         roles: [role],
+        confirm: { expire, token },
       });
 
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
+
+      await this.mailService.sendConfirmationEmail(user, tokenEmail);
+
       return {
         success: true,
         message: 'User has been registered',
@@ -136,6 +152,36 @@ export class AuthService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async confirmEmail(createConfirmEmail: ConfirmEmailDto) {
+    const { email, token: tokenP } = createConfirmEmail;
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+    const dbUser = await queryBuilder
+      .select(['user.id', 'user.confirm'])
+      .where('email = :email', { email })
+      .getOne();
+
+    if (!dbUser || !dbUser.confirm)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
+
+    const { token, expire } = dbUser.confirm;
+    const pastDueToken = isPast(expire);
+
+    if (pastDueToken)
+      throw new NotFoundException({ key: 'operations.TOKEN_EXPIRE' });
+
+    const isValid = bcrypt.compareSync(tokenP, token);
+
+    if (!isValid)
+      throw new BadRequestException({ key: 'operations.TOKEN_EXPIRE' });
+
+    await this.userRepository.update(dbUser.id, {
+      confirm: null,
+      confirmPassword: true,
+    });
+
+    return { success: true };
   }
 
   async getUser(user: User) {

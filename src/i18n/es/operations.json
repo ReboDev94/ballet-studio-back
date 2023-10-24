@@ -11,6 +11,7 @@
         "FOUND":"El email ya existe",
         "NOT_FOUND": "El usuario no existe.",
         "INACTIVE": "El usuario esta inactivo.",
+        "CONFIRM_PASSWORD": "El usuario no ha confirmado el correo electónico.",
         "IS_TEACHER": "El usuario no es un maestro.",
         "HAS_SCHOOL": "EL usuario ya tiene una escuela.",
         "HAS_NOT_SCHOOL": "El usuario no tiene una escuela."

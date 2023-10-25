@@ -9,9 +9,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { School } from './entities/school.entity';
-import { FilesService } from 'src/files/files.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { User } from 'src/auth/entities';
+import { FilesSchoolService } from 'src/files/files.school.service';
 
 @Injectable()
 export class SchoolService {
@@ -19,7 +19,7 @@ export class SchoolService {
   constructor(
     @InjectRepository(School)
     private readonly schoolRepository: Repository<School>,
-    private readonly fileService: FilesService,
+    private readonly fileSchoolService: FilesSchoolService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -74,9 +74,9 @@ export class SchoolService {
 
     try {
       if (file) {
-        const { name } = await this.fileService.uploadS3(
+        const { name } = await this.fileSchoolService.uploadLogoSchool(
           file,
-          `school/${schoolId}/profile/`,
+          schoolId,
           school.logo,
         );
         school.logo = name;
@@ -93,7 +93,7 @@ export class SchoolService {
   }
 
   async getSchool(school: School) {
-    school.logo = await this.generatePresignedUrlLogoSchool(
+    school.logo = await this.fileSchoolService.generatePresignedUrlLogoSchool(
       school.id,
       school.logo,
     );
@@ -103,25 +103,17 @@ export class SchoolService {
     };
   }
 
-  async generatePresignedUrlLogoSchool(schoolId: number, logo: string | null) {
-    const url = logo
-      ? await this.fileService.getPresignedUrlS3(
-          `school/${schoolId}/profile/${logo}`,
-        )
-      : null;
-    return url;
-  }
-
   async findOne(schoolId: number, presignedUrl = false) {
     const dbSchool = await this.schoolRepository.findOneBy({ id: schoolId });
     if (!dbSchool)
       throw new NotFoundException({ key: 'operations.SCHOOL.NOT_FOUND' });
 
     if (presignedUrl) {
-      dbSchool.logo = await this.generatePresignedUrlLogoSchool(
-        dbSchool.id,
-        dbSchool.logo,
-      );
+      dbSchool.logo =
+        await this.fileSchoolService.generatePresignedUrlLogoSchool(
+          dbSchool.id,
+          dbSchool.logo,
+        );
     }
     return dbSchool;
   }

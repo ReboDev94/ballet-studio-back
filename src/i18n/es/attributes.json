@@ -7,6 +7,7 @@
     "directorName": "Nombre del director(a)",
     "email": "Correo electrónico",
     "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
     "roles": "Roles",
     "role": "Rol",
     "photo": "Foto",

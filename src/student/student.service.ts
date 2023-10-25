@@ -11,11 +11,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Tutor } from './entities/tutor.entity';
 import { Student } from './entities/student.entity';
 import { School } from '../school/entities/school.entity';
-import { FilesService } from '../files/files.service';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
 import { SearchStudenthDto } from './dto/search-student.dto';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
+import { FilesStudentService } from 'src/files/files.student.service';
 
 @Injectable()
 export class StudentService {
@@ -27,7 +27,7 @@ export class StudentService {
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     private readonly dataSource: DataSource,
-    private readonly fileService: FilesService,
+    private readonly fileStudentService: FilesStudentService,
   ) {}
 
   async create(
@@ -70,9 +70,9 @@ export class StudentService {
       await queryRunner.commitTransaction();
 
       if (file) {
-        const { name } = await this.fileService.uploadS3(
+        const { name } = await this.fileStudentService.uploadLogoStudent(
           file,
-          `student/${dbStudent.id}/profile/`,
+          dbStudent.id,
         );
         await this.studentRepository.update(dbStudent.id, {
           avatar: name,
@@ -113,9 +113,9 @@ export class StudentService {
 
     try {
       if (file) {
-        const { name } = await this.fileService.uploadS3(
+        const { name } = await this.fileStudentService.uploadLogoStudent(
           file,
-          `student/${id}/profile/`,
+          id,
           preStudent.avatar,
         );
         preStudent.avatar = name;
@@ -178,7 +178,10 @@ export class StudentService {
     const students = await queryBuilder.where(query, conditions).getMany();
 
     for (const st of students) {
-      st.avatar = await this.getUrlSignedAvatar(st.id, st.avatar);
+      st.avatar = await this.fileStudentService.getUrlSignedAvatar(
+        st.id,
+        st.avatar,
+      );
     }
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
@@ -203,7 +206,7 @@ export class StudentService {
       });
 
     if (signedAvatar)
-      student.avatar = await this.getUrlSignedAvatar(
+      student.avatar = await this.fileStudentService.getUrlSignedAvatar(
         student.id,
         student.avatar,
       );
@@ -219,15 +222,6 @@ export class StudentService {
       })
       .getMany();
     return students;
-  }
-
-  async getUrlSignedAvatar(studentId: number, avatarName: string | null) {
-    const url = avatarName
-      ? await this.fileService.getPresignedUrlS3(
-          `student/${studentId}/profile/${avatarName}`,
-        )
-      : null;
-    return url;
   }
 
   private handleDBException(error: any) {

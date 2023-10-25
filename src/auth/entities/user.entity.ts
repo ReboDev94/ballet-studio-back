@@ -18,6 +18,7 @@ import { Role } from './role.entity';
 import { School } from '../../school/entities/school.entity';
 import { ucwords } from 'src/common/utils';
 import { Group } from '../../group/entities/group.entity';
+import { ResetPassword } from '../interfaces/reset-password';
 
 @Entity()
 export class User {
@@ -44,6 +45,19 @@ export class User {
 
   @Column('bool', { default: true })
   isActive: boolean;
+
+  @Column('bool', { default: true })
+  confirmPassword: boolean;
+
+  @Column('jsonb', {
+    nullable: true,
+    default: null,
+    select: false,
+  })
+  reset: ResetPassword;
+
+  @Column('jsonb', { nullable: true, default: null, select: false })
+  confirm: ResetPassword;
 
   @ManyToMany(() => Role, (role) => role.id, { eager: true, nullable: false })
   @JoinTable()

@@ -19,6 +19,7 @@ import { GroupModule } from './group/group.module';
 import { RollCallModule } from './roll-call/roll-call.module';
 import { GroupStudentsModule } from './group-students/group-students.module';
 import { AllExceptionsFilter } from './common/helpers';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AllExceptionsFilter } from './common/helpers';
     GroupModule,
     RollCallModule,
     GroupStudentsModule,
+    MailModule,
   ],
   controllers: [],
   providers: [

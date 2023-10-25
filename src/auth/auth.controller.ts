@@ -13,8 +13,11 @@ import {
 
 import { AuthService } from './auth.service';
 import {
+  ChangePasswordDto,
+  ConfirmEmailDto,
   CreateUserDto,
   LoginUserDto,
+  SendEmailResetPasswordDto,
   UpdateStatusUserDto,
   UpdateUserDto,
 } from './dto';
@@ -43,6 +46,11 @@ export class AuthController {
     return this.authService.register(createAccountDto);
   }
 
+  @Post('confirm/email')
+  confirmEmail(@Body() createConfirmEmail: ConfirmEmailDto) {
+    return this.authService.confirmEmail(createConfirmEmail);
+  }
+
   @Get('user')
   @Auth([])
   getUser(@GetUser() user: User) {
@@ -56,6 +64,16 @@ export class AuthController {
     @Body() createUserDto: CreateUserDto,
   ) {
     return this.authService.createUser(createUserDto, school);
+  }
+
+  @Post('send/reset/password')
+  sendEmailResetPassword(@Body() createSendEmail: SendEmailResetPasswordDto) {
+    return this.authService.sendEmailResetPassword(createSendEmail);
+  }
+
+  @Post('reset/password')
+  changePassword(@Body() changePassword: ChangePasswordDto) {
+    return this.authService.changePassword(changePassword);
   }
 
   @Delete('user/:userId')
@@ -90,11 +108,11 @@ export class AuthController {
     }),
   )
   updateProfile(
-    @GetUser('id') id: number,
+    @GetUser() user: User,
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.authService.updateProfile(id, updateUserDto, file);
+    return this.authService.updateProfile(user, updateUserDto, file);
   }
 
   @Get('users')

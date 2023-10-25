@@ -7,12 +7,22 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+
+import { isPast } from 'date-fns';
+import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { User } from './entities/user.entity';
-import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
+import {
+  ChangePasswordDto,
+  ConfirmEmailDto,
+  CreateUserDto,
+  LoginUserDto,
+  SendEmailResetPasswordDto,
+  UpdateUserDto,
+} from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
 import { RegisterUserDto } from './dto';
 import { School } from '../school/entities/school.entity';
@@ -23,7 +33,11 @@ import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
 import { SearchUserDto } from './dto/search-user.dto';
-import { FilesService } from 'src/files/files.service';
+import { generatePassword } from './utils';
+import { MailService } from 'src/mail/mail.service';
+import { FilesAuthService } from 'src/files/files.auth.service';
+import { FullResetPassword } from './interfaces/reset-password';
+
 @Injectable()
 export class AuthService {
   private readonly DEFAULT_ROLE = ValidRoles.admin;
@@ -36,7 +50,8 @@ export class AuthService {
     private readonly roleRepository: Repository<Role>,
     private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
-    private readonly fileService: FilesService,
+    private readonly fileAuthService: FilesAuthService,
+    private readonly mailService: MailService,
   ) {}
 
   async login(loginUserDto: LoginUserDto) {
@@ -52,6 +67,7 @@ export class AuthService {
         email: true,
         isOwner: true,
         isActive: true,
+        confirmPassword: true,
         roles: true,
         photo: true,
       },
@@ -64,6 +80,11 @@ export class AuthService {
     if (!user.isActive)
       throw new UnauthorizedException({ key: 'operations.USER.INACTIVE' });
 
+    if (!user.confirmPassword)
+      throw new UnauthorizedException({
+        key: 'operations.USER.CONFIRM_PASSWORD',
+      });
+
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException({
         key: 'operations.CREDENTIALS_ARE_NO_VALIDS',
@@ -73,7 +94,10 @@ export class AuthService {
     const hasSchool = !!user.school;
     delete user.school;
 
-    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    const urlPhoto = await this.fileAuthService.generatePresignedUrlLogoUser(
+      user.id,
+      user.photo,
+    );
     user.photo = urlPhoto;
 
     return {
@@ -88,7 +112,9 @@ export class AuthService {
 
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail)
-      throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
+      throw new BadRequestException({
+        key: 'operations.EMAIL.ALREDY_EXITS',
+      });
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -99,15 +125,23 @@ export class AuthService {
         slug: this.DEFAULT_ROLE,
       });
 
+      const { expire, token, tokenEmail } = this.genereateResetData();
+
       const user = this.userRepository.create({
         email,
         password: bcrypt.hashSync(password, 10),
         isOwner: true,
+        isActive: true,
+        confirmPassword: false,
         roles: [role],
+        confirm: { expire, token },
       });
 
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
+
+      await this.mailService.sendConfirmationEmail(user, tokenEmail);
+
       return {
         success: true,
         message: 'User has been registered',
@@ -120,11 +154,44 @@ export class AuthService {
     }
   }
 
+  async confirmEmail(createConfirmEmail: ConfirmEmailDto) {
+    const { email, token: tokenP } = createConfirmEmail;
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+    const dbUser = await queryBuilder
+      .select(['user.id', 'user.confirm'])
+      .where('email = :email', { email })
+      .getOne();
+
+    if (!dbUser || !dbUser.confirm)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
+
+    const { token, expire } = dbUser.confirm;
+    const pastDueToken = isPast(expire);
+
+    if (pastDueToken)
+      throw new NotFoundException({ key: 'operations.TOKEN_EXPIRE' });
+
+    const isValid = bcrypt.compareSync(tokenP, token);
+
+    if (!isValid)
+      throw new BadRequestException({ key: 'operations.TOKEN_EXPIRE' });
+
+    await this.userRepository.update(dbUser.id, {
+      confirm: null,
+      confirmPassword: true,
+    });
+
+    return { success: true };
+  }
+
   async getUser(user: User) {
     const hasSchool = !!user.school;
     delete user.school;
 
-    const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+    const urlPhoto = await this.fileAuthService.generatePresignedUrlLogoUser(
+      user.id,
+      user.photo,
+    );
     user.photo = urlPhoto;
 
     return {
@@ -137,34 +204,86 @@ export class AuthService {
   }
 
   async createUser(createUserDto: CreateUserDto, school: School) {
-    const { email, password } = createUserDto;
+    const { email } = createUserDto;
+    const password = generatePassword();
     const exitsEmail = await this.userRepository.findOneBy({ email });
     if (exitsEmail)
       throw new BadRequestException({ key: 'operations.EMAIL.ALREDY_EXITS' });
 
     try {
       const { roles, ...rest } = createUserDto;
-
       const dbRoles = await this.roleRepository.find({
         where: { slug: In(roles) },
       });
 
+      const { expire, token, tokenEmail } = this.genereateResetData();
       const user = this.userRepository.create({
         ...rest,
         roles: dbRoles,
         password: bcrypt.hashSync(password, 10),
         school,
+        isActive: true,
+        reset: { expire, token },
       });
-
       const dbUser = await this.userRepository.save(user);
+      await this.mailService.sendResetPassword(dbUser, tokenEmail);
 
       return {
         success: true,
-        user: dbUser,
       };
     } catch (error) {
       this.handleDBException(error);
     }
+  }
+
+  async changePassword(changePassword: ChangePasswordDto) {
+    const { email, token: tokenP, password } = changePassword;
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    const dbUser = await queryBuilder
+      .select(['user.id', 'user.reset'])
+      .where('email = :email', { email })
+      .getOne();
+
+    if (!dbUser || !dbUser.reset)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
+
+    const { token, expire } = dbUser.reset;
+    const pastDueToken = isPast(expire);
+
+    if (pastDueToken)
+      throw new NotFoundException({ key: 'operations.TOKEN_EXPIRE' });
+
+    const isValid = bcrypt.compareSync(tokenP, token);
+
+    if (!isValid)
+      throw new BadRequestException({ key: 'operations.TOKEN_EXPIRE' });
+
+    await this.userRepository.update(dbUser.id, {
+      reset: null,
+      password: bcrypt.hashSync(password, 10),
+    });
+
+    return { success: true };
+  }
+
+  async sendEmailResetPassword(createSendEmail: SendEmailResetPasswordDto) {
+    const { email } = createSendEmail;
+    const userExist = await this.userRepository.findOne({
+      relations: { school: true },
+      where: { email },
+    });
+
+    if (!userExist)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
+
+    const { expire, token, tokenEmail } = this.genereateResetData();
+    await this.userRepository.update(userExist.id, {
+      reset: { expire, token },
+    });
+    await this.mailService.sendResetPassword(userExist, tokenEmail);
+
+    return { success: true };
   }
 
   async deleteUser(userId: number, schoolId: number) {
@@ -214,7 +333,7 @@ export class AuthService {
     schoolId: number,
     searchUserDto: SearchUserDto,
   ) {
-    const { take, skip, page, name, role, photos } = searchUserDto;
+    const { take, skip, page, name, roles, photos, order } = searchUserDto;
 
     const pageOptionsDto: PageOptionsDto = {
       take,
@@ -234,11 +353,12 @@ export class AuthService {
     const queryBuilder = this.userRepository.createQueryBuilder('user');
     const preQueryBuilder = queryBuilder
       .where(query, conditions)
+      .orderBy('user.name', order)
       .leftJoinAndSelect('user.roles', 'roles');
 
-    if (role) {
+    if (roles) {
       preQueryBuilder.andWhere('roles.slug IN (:...roleSlug)', {
-        roleSlug: [role],
+        roleSlug: roles,
       });
     }
     const itemCount = await preQueryBuilder.getCount();
@@ -248,7 +368,11 @@ export class AuthService {
 
     if (photos) {
       for (const user of dbUsers) {
-        const urlPhoto = await this.getPresignedUrl(user.id, user.photo);
+        const urlPhoto =
+          await this.fileAuthService.generatePresignedUrlLogoUser(
+            user.id,
+            user.photo,
+          );
         user.photo = urlPhoto;
         users.push(user);
       }
@@ -266,29 +390,41 @@ export class AuthService {
   }
 
   async updateProfile(
-    userId: number,
+    user: User,
     updateUserDto: UpdateUserDto,
     file: Express.Multer.File,
   ) {
-    const user = await this.userRepository.preload({
-      id: userId,
+    const userPre = await this.userRepository.preload({
+      id: user.id,
       ...updateUserDto,
     });
-    if (!user)
+
+    if (userPre.email !== user.email) {
+      const userExist = await this.userRepository.findOneBy({
+        email: userPre.email,
+      });
+      if (userExist)
+        throw new NotFoundException({ key: 'operations.USER.FOUND' });
+    }
+
+    if (!userPre)
       throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
 
     try {
       if (file) {
-        const { name } = await this.fileService.uploadS3(
+        const { name } = await this.fileAuthService.uploadLogoUser(
           file,
-          `user/${userId}/profile/`,
-          user.photo,
+          userPre.id,
+          userPre.photo,
         );
-        user.photo = name;
+        userPre.photo = name;
       }
 
-      const dbUser = await this.userRepository.save(user);
-      const urlPhoto = await this.getPresignedUrl(dbUser.id, dbUser.photo);
+      const dbUser = await this.userRepository.save(userPre);
+      const urlPhoto = await this.fileAuthService.generatePresignedUrlLogoUser(
+        dbUser.id,
+        dbUser.photo,
+      );
       dbUser.photo = urlPhoto;
 
       return {
@@ -318,18 +454,19 @@ export class AuthService {
     return teacher;
   }
 
-  private async getPresignedUrl(userId: number, photoName: string | null) {
-    let urlPhoto: string | null = null;
-    if (photoName) {
-      urlPhoto = await this.fileService.getPresignedUrlS3(
-        `user/${userId}/profile/${photoName}`,
-      );
-    }
-    return urlPhoto;
+  private genereateResetData(): FullResetPassword {
+    const tokenResetPassword = randomBytes(32).toString('hex');
+    const hashToken = bcrypt.hashSync(tokenResetPassword, 10);
+    const dateNow = new Date();
+    const expire = new Date(
+      new Date(dateNow).setHours(dateNow.getHours() + 24),
+    ).getTime();
+
+    return { expire, token: hashToken, tokenEmail: tokenResetPassword };
   }
 
-  private getJwt(payload: JwtPayload) {
-    const token = this.jwtService.sign(payload);
+  private getJwt(payload: JwtPayload, options?: JwtSignOptions) {
+    const token = this.jwtService.sign(payload, options);
     return token;
   }
 

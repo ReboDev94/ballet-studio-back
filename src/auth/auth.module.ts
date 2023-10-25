@@ -10,7 +10,7 @@ import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { JwtStrategy } from './strategies/jwt-strategy';
 import { FilesModule } from 'src/files/files.module';
-
+import { MailModule } from 'src/mail/mail.module';
 @Module({
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
@@ -29,6 +29,7 @@ import { FilesModule } from 'src/files/files.module';
       },
     }),
     FilesModule,
+    MailModule,
   ],
   exports: [TypeOrmModule, JwtStrategy, PassportModule, JwtModule, AuthService],
 })

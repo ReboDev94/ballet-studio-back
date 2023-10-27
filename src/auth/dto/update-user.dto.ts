@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class UpdateUserDto {
@@ -9,8 +9,4 @@ export class UpdateUserDto {
   @IsString({ message: i18nValidationMessage('validation.STRING') })
   @IsOptional()
   phone: string;
-
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @IsEmail({}, { message: i18nValidationMessage('validation.EMAIL') })
-  email: string;
 }

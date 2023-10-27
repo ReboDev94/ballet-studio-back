@@ -399,14 +399,6 @@ export class AuthService {
       ...updateUserDto,
     });
 
-    if (userPre.email !== user.email) {
-      const userExist = await this.userRepository.findOneBy({
-        email: userPre.email,
-      });
-      if (userExist)
-        throw new NotFoundException({ key: 'operations.USER.FOUND' });
-    }
-
     if (!userPre)
       throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
 

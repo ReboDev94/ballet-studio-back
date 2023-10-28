@@ -33,9 +33,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user.isActive)
       throw new UnauthorizedException({ key: 'operations.USER.INACTIVE' });
 
-    if (!user.confirmPassword)
+    if (!user.confirmEmail)
       throw new UnauthorizedException({
-        key: 'operations.USER.CONFIRM_PASSWORD',
+        key: 'operations.CONFIRM_EMAIL',
       });
     return user;
   }

@@ -47,7 +47,7 @@ export class User {
   isActive: boolean;
 
   @Column('bool', { default: true })
-  confirmPassword: boolean;
+  confirmEmail: boolean;
 
   @Column('jsonb', {
     nullable: true,

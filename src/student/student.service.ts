@@ -164,7 +164,7 @@ export class StudentService {
   }
 
   async findAll(searchStudentDto: SearchStudenthDto, { id }: School) {
-    const { take, skip, page, name } = searchStudentDto;
+    const { take, skip, page, name, order } = searchStudentDto;
     const pageOptionsDto: PageOptionsDto = { take, skip, page };
 
     const query = 'student.name like :name and student.schoolId = :schoolId';
@@ -179,6 +179,7 @@ export class StudentService {
     const students = await queryBuilder
       .where(query, conditions)
       .leftJoinAndSelect('student.tutor', 'tutor')
+      .orderBy('student.name', order)
       .getMany();
 
     for (const st of students) {

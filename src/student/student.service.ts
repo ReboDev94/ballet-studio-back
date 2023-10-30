@@ -174,8 +174,12 @@ export class StudentService {
     };
 
     const queryBuilder = this.studentRepository.createQueryBuilder('student');
+
     const itemCount = await queryBuilder.where(query, conditions).getCount();
-    const students = await queryBuilder.where(query, conditions).getMany();
+    const students = await queryBuilder
+      .where(query, conditions)
+      .leftJoinAndSelect('student.tutor', 'tutor')
+      .getMany();
 
     for (const st of students) {
       st.avatar = await this.fileStudentService.getUrlSignedAvatar(

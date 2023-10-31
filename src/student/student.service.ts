@@ -16,6 +16,7 @@ import { PageDto } from '../common/dto/page.dto';
 import { SearchStudenthDto } from './dto/search-student.dto';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { FilesStudentService } from 'src/files/files.student.service';
+import { IsOlder } from 'src/common/utils';
 
 @Injectable()
 export class StudentService {
@@ -35,21 +36,26 @@ export class StudentService {
     createStudentDto: CreateStudentDto,
     school: School,
   ) {
+    const isOlder = IsOlder(createStudentDto.dateOfBirth);
+    if (isOlder) {
+      createStudentDto.tutorName = createStudentDto.name;
+    }
+
+    const {
+      name,
+      dateOfBirth,
+      address,
+      dieseses,
+      tutorName,
+      tutorEmail,
+      tutorPhone,
+      tutorCelPhone,
+    } = createStudentDto;
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const {
-        name,
-        dateOfBirth,
-        address,
-        dieseses,
-        tutorName,
-        tutorEmail,
-        tutorPhone,
-        tutorCelPhone,
-      } = createStudentDto;
-
       const student = this.studentRepository.create({
         name,
         dateOfBirth,
@@ -60,7 +66,7 @@ export class StudentService {
       const dbStudent = await queryRunner.manager.save(student);
 
       const tutor = this.tutorRepository.create({
-        name: tutorName ? tutorName : name,
+        name: tutorName,
         email: tutorEmail,
         phone: tutorPhone,
         celPhone: tutorCelPhone,

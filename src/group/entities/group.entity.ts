@@ -26,6 +26,7 @@ export class Group {
     /* default: () => "'[]'"
     schedules: Schedules[];
   */
+
   @Column('jsonb', {
     nullable: false,
   })

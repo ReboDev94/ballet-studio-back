@@ -1,17 +1,14 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import { Degrees } from 'src/common/interfaces/degrees';
-import { IsEnum, IsOptional, IsInt } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
-export class SearchGroupDto extends PartialType(PageOptionsDto) {
+export class SearchGroupDto extends PageOptionsDto {
   @IsEnum(Degrees, { message: i18nValidationMessage('validation.ENUM') })
   @IsOptional()
   degree?: Degrees;
 
-  @Type(() => Number)
-  @IsInt({ message: i18nValidationMessage('validation.INT') })
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
   @IsOptional()
-  teacher?: number;
+  teacher?: string;
 }

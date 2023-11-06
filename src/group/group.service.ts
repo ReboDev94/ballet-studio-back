@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Like, Repository } from 'typeorm';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -86,24 +86,43 @@ export class GroupService {
   }
 
   async findAll({ id: schoolId }: School, searchGroupDto: SearchGroupDto) {
-    const { page, take, skip, degree, teacher } = searchGroupDto;
-    const pageOptionsDto: PageOptionsDto = { page, skip, take };
+    const { page, take, order, skip, degree, teacher } = searchGroupDto;
 
     const conditions: FindManyOptions<Group> = {
-      where: { school: { id: schoolId } },
+      select: {
+        teacher: {
+          name: true,
+        },
+      },
+      where: {
+        school: {
+          id: schoolId,
+        },
+      },
+      relations: {
+        teacher: true,
+      },
+      order: {
+        description: order,
+      },
     };
+
     if (degree) conditions.where['degree'] = degree;
-    if (teacher) conditions.where['teacher'] = { id: teacher };
+    if (teacher) conditions.where['teacher'] = { name: Like(`${teacher}%`) };
 
     const itemCount = await this.groupRepository.count(conditions);
+
+    conditions.take = take;
+    conditions.skip = skip;
     const groups = await this.groupRepository.find(conditions);
 
+    const pageOptionsDto: PageOptionsDto = { take, skip, page };
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
-    const data = new PageDto(groups, pageMetaDto);
+    const pageData = new PageDto(groups, pageMetaDto);
 
     return {
       success: true,
-      groups: { ...data },
+      groups: pageData.data,
     };
   }
 

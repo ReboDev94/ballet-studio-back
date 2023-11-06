@@ -1,4 +1,3 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import {
   IsArray,
@@ -11,7 +10,7 @@ import { ValidRoles } from '../interfaces/valid-roles';
 import { Transform, Type } from 'class-transformer';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
-export class SearchUserDto extends PartialType(PageOptionsDto) {
+export class SearchUserDto extends PageOptionsDto {
   @IsString({ message: i18nValidationMessage('validation.STRING') })
   @IsOptional()
   name?: string;

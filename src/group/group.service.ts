@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Like, Repository } from 'typeorm';
+import { FindManyOptions, In, Like, Repository } from 'typeorm';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -86,8 +86,7 @@ export class GroupService {
   }
 
   async findAll({ id: schoolId }: School, searchGroupDto: SearchGroupDto) {
-    const { page, take, order, skip, degree, teacher } = searchGroupDto;
-
+    const { page, take, order, skip, degree = [], teacher } = searchGroupDto;
     const conditions: FindManyOptions<Group> = {
       select: {
         teacher: {
@@ -98,6 +97,7 @@ export class GroupService {
         school: {
           id: schoolId,
         },
+        degree: In([...degree]),
       },
       relations: {
         teacher: true,
@@ -107,7 +107,6 @@ export class GroupService {
       },
     };
 
-    if (degree) conditions.where['degree'] = degree;
     if (teacher) conditions.where['teacher'] = { name: Like(`${teacher}%`) };
 
     const itemCount = await this.groupRepository.count(conditions);
@@ -122,7 +121,7 @@ export class GroupService {
 
     return {
       success: true,
-      groups: {...pageData},
+      groups: { ...pageData },
     };
   }
 

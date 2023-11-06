@@ -122,7 +122,7 @@ export class GroupService {
 
     return {
       success: true,
-      groups: pageData.data,
+      groups: {...pageData},
     };
   }
 

@@ -97,7 +97,6 @@ export class GroupService {
         school: {
           id: schoolId,
         },
-        degree: In([...degree]),
       },
       relations: {
         teacher: true,
@@ -107,6 +106,8 @@ export class GroupService {
       },
     };
 
+    if (degree && degree.length > 0)
+      conditions.where['degree'] = In([...degree]);
     if (teacher) conditions.where['teacher'] = { name: Like(`${teacher}%`) };
 
     const itemCount = await this.groupRepository.count(conditions);

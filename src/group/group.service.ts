@@ -16,6 +16,7 @@ import { SearchGroupDto } from './dto/search-group';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
+import { Days } from 'src/common/interfaces/days';
 
 @Injectable()
 export class GroupService {
@@ -28,12 +29,21 @@ export class GroupService {
   ) {}
 
   async create(createGroupDto: CreateGroupDto, school: School) {
-    const { teacherId } = createGroupDto;
+    const schedules = Object.keys(Days).map((k) => ({
+      day: k,
+      hour: createGroupDto[`schedule${k}`],
+    }));
+
+    const { teacherId, startDate, schoolCycle, degree } = createGroupDto;
     const { id: schoolId } = school;
     const teacher = await this.authService.findOneTeacher(teacherId, schoolId);
+
     try {
       const group = this.groupRepository.create({
-        ...createGroupDto,
+        schedules,
+        startDate,
+        schoolCycle,
+        degree,
         school,
         teacher,
       });

@@ -1,30 +1,54 @@
 import {
-  IsString,
   IsOptional,
-  IsArray,
-  ValidateNested,
+  IsString,
   IsDateString,
   IsEnum,
   Matches,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { SchedulesDto } from './schedules.dto';
 import { IsInt } from 'class-validator';
 import { Degrees } from '../../common/interfaces/degrees';
 import { i18nValidationMessage } from 'nestjs-i18n';
+import { REGEX_HOUR } from 'src/common/constants/regex-hourt';
 
 export class CreateGroupDto {
   @IsString({ message: i18nValidationMessage('validation.STRING') })
   @IsOptional()
   description?: string = '';
 
-  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
-  @ValidateNested({
-    each: true,
-    message: i18nValidationMessage('validation.ARRAY.OBJECT'),
-  })
-  @Type(() => SchedulesDto)
-  schedules: SchedulesDto[];
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
+  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
+  scheduleL?: string = '';
+
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
+  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
+  scheduleM?: string = '';
+
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
+  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
+  scheduleMI?: string = '';
+
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
+  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
+  scheduleJ?: string = '';
+
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
+  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
+  scheduleV?: string = '';
+
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
+  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
+  scheduleS?: string = '';
+
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('validation.STRING') })
+  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
+  scheduleD?: string = '';
 
   @IsDateString(
     {},

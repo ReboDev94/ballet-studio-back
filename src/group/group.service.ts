@@ -34,12 +34,14 @@ export class GroupService {
       hour: createGroupDto[`schedule${k}`],
     }));
 
-    const { teacherId, startDate, schoolCycle, degree } = createGroupDto;
+    const { description, teacherId, startDate, schoolCycle, degree } =
+      createGroupDto;
     const { id: schoolId } = school;
     const teacher = await this.authService.findOneTeacher(teacherId, schoolId);
 
     try {
       const group = this.groupRepository.create({
+        description,
         schedules,
         startDate,
         schoolCycle,

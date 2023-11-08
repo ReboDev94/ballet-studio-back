@@ -21,19 +21,10 @@ export class Group {
   @Column('text', { default: '' })
   description: string;
 
-  /*
-    array: false,
-    /* default: () => "'[]'"
-    schedules: Schedules[];
-  */
-
   @Column('jsonb', {
     nullable: false,
   })
   schedules: object[];
-
-  @Column('date', { nullable: false })
-  startDate: Date;
 
   @Column('numeric')
   schoolCycle: number;

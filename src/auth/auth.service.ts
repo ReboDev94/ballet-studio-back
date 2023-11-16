@@ -67,7 +67,7 @@ export class AuthService {
         email: true,
         isOwner: true,
         isActive: true,
-        confirmPassword: true,
+        confirmEmail: true,
         roles: true,
         photo: true,
       },
@@ -80,9 +80,9 @@ export class AuthService {
     if (!user.isActive)
       throw new UnauthorizedException({ key: 'operations.USER.INACTIVE' });
 
-    if (!user.confirmPassword)
+    if (!user.confirmEmail)
       throw new UnauthorizedException({
-        key: 'operations.USER.CONFIRM_PASSWORD',
+        key: 'operations.CONFIRM_EMAIL',
       });
 
     if (!bcrypt.compareSync(password, user.password))
@@ -132,7 +132,7 @@ export class AuthService {
         password: bcrypt.hashSync(password, 10),
         isOwner: true,
         isActive: true,
-        confirmPassword: false,
+        confirmEmail: false,
         roles: [role],
         confirm: { expire, token },
       });
@@ -178,7 +178,7 @@ export class AuthService {
 
     await this.userRepository.update(dbUser.id, {
       confirm: null,
-      confirmPassword: true,
+      confirmEmail: true,
     });
 
     return { success: true };
@@ -227,6 +227,66 @@ export class AuthService {
       });
       const dbUser = await this.userRepository.save(user);
       await this.mailService.sendResetPassword(dbUser, tokenEmail);
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+
+  async updateUser(
+    userId: number,
+    createUserDto: CreateUserDto,
+    school: School,
+  ) {
+    const { email, roles, ...rest } = createUserDto;
+
+    const dbUser = await this.userRepository.findOne({
+      where: { id: userId, school: { id: school.id } },
+      relations: { school: true },
+    });
+
+    if (!dbUser)
+      throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });
+
+    if (dbUser.email !== email) {
+      const userExist = await this.userRepository.findOneBy({
+        email,
+      });
+      if (userExist)
+        throw new NotFoundException({ key: 'operations.USER.FOUND' });
+    }
+
+    const dbRoles = await this.roleRepository.find({
+      where: { slug: In(roles) },
+    });
+    const dbUserPre = await this.userRepository.preload({
+      ...dbUser,
+      ...rest,
+      email,
+      roles: dbRoles,
+    });
+
+    try {
+      let tokenEmail = null;
+      if (dbUser.email !== email) {
+        const {
+          expire,
+          token,
+          tokenEmail: tokenAuxEmail,
+        } = this.genereateResetData();
+        tokenEmail = tokenAuxEmail;
+        dbUserPre.confirm = { expire, token };
+        dbUserPre.confirmEmail = false;
+      }
+
+      const user = await this.userRepository.save(dbUserPre);
+
+      if (dbUser.email !== email) {
+        await this.mailService.sendResetPassword(user, tokenEmail);
+      }
 
       return {
         success: true,
@@ -398,14 +458,6 @@ export class AuthService {
       id: user.id,
       ...updateUserDto,
     });
-
-    if (userPre.email !== user.email) {
-      const userExist = await this.userRepository.findOneBy({
-        email: userPre.email,
-      });
-      if (userExist)
-        throw new NotFoundException({ key: 'operations.USER.FOUND' });
-    }
 
     if (!userPre)
       throw new NotFoundException({ key: 'operations.USER.NOT_FOUND' });

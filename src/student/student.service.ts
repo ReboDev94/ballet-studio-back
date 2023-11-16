@@ -16,6 +16,7 @@ import { PageDto } from '../common/dto/page.dto';
 import { SearchStudenthDto } from './dto/search-student.dto';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { FilesStudentService } from 'src/files/files.student.service';
+import { IsOlder } from 'src/common/utils';
 
 @Injectable()
 export class StudentService {
@@ -35,21 +36,26 @@ export class StudentService {
     createStudentDto: CreateStudentDto,
     school: School,
   ) {
+    const isOlder = IsOlder(createStudentDto.dateOfBirth);
+    if (isOlder) {
+      createStudentDto.tutorName = createStudentDto.name;
+    }
+
+    const {
+      name,
+      dateOfBirth,
+      address,
+      dieseses,
+      tutorName,
+      tutorEmail,
+      tutorPhone,
+      tutorCelPhone,
+    } = createStudentDto;
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const {
-        name,
-        dateOfBirth,
-        address,
-        dieseses,
-        tutorName,
-        tutorEmail,
-        tutorPhone,
-        tutorCelPhone,
-      } = createStudentDto;
-
       const student = this.studentRepository.create({
         name,
         dateOfBirth,
@@ -60,7 +66,7 @@ export class StudentService {
       const dbStudent = await queryRunner.manager.save(student);
 
       const tutor = this.tutorRepository.create({
-        name: tutorName ? tutorName : name,
+        name: tutorName,
         email: tutorEmail,
         phone: tutorPhone,
         celPhone: tutorCelPhone,
@@ -164,7 +170,7 @@ export class StudentService {
   }
 
   async findAll(searchStudentDto: SearchStudenthDto, { id }: School) {
-    const { take, skip, page, name } = searchStudentDto;
+    const { take, skip, page, name, order } = searchStudentDto;
     const pageOptionsDto: PageOptionsDto = { take, skip, page };
 
     const query = 'student.name like :name and student.schoolId = :schoolId';
@@ -174,8 +180,13 @@ export class StudentService {
     };
 
     const queryBuilder = this.studentRepository.createQueryBuilder('student');
+
     const itemCount = await queryBuilder.where(query, conditions).getCount();
-    const students = await queryBuilder.where(query, conditions).getMany();
+    const students = await queryBuilder
+      .where(query, conditions)
+      .leftJoinAndSelect('student.tutor', 'tutor')
+      .orderBy('student.name', order)
+      .getMany();
 
     for (const st of students) {
       st.avatar = await this.fileStudentService.getUrlSignedAvatar(

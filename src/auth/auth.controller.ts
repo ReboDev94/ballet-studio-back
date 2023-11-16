@@ -66,6 +66,16 @@ export class AuthController {
     return this.authService.createUser(createUserDto, school);
   }
 
+  @Patch('user/:userId')
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
+  updateUser(
+    @GetUser('school') school: School,
+    @Param('userId') userId: number,
+    @Body() createUserDto: CreateUserDto,
+  ) {
+    return this.authService.updateUser(userId, createUserDto, school);
+  }
+
   @Post('send/reset/password')
   sendEmailResetPassword(@Body() createSendEmail: SendEmailResetPasswordDto) {
     return this.authService.sendEmailResetPassword(createSendEmail);

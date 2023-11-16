@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, In, Like, Repository } from 'typeorm';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -16,6 +16,7 @@ import { SearchGroupDto } from './dto/search-group';
 import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
+import { Days } from 'src/common/interfaces/days';
 
 @Injectable()
 export class GroupService {
@@ -28,12 +29,21 @@ export class GroupService {
   ) {}
 
   async create(createGroupDto: CreateGroupDto, school: School) {
-    const { teacherId } = createGroupDto;
+    const schedules = Object.keys(Days).map((k) => ({
+      day: k,
+      hour: createGroupDto[`schedule${k}`],
+    }));
+
+    const { description, teacherId, schoolCycle, degree } = createGroupDto;
     const { id: schoolId } = school;
     const teacher = await this.authService.findOneTeacher(teacherId, schoolId);
+
     try {
       const group = this.groupRepository.create({
-        ...createGroupDto,
+        description,
+        schedules,
+        schoolCycle,
+        degree,
         school,
         teacher,
       });
@@ -86,24 +96,43 @@ export class GroupService {
   }
 
   async findAll({ id: schoolId }: School, searchGroupDto: SearchGroupDto) {
-    const { page, take, skip, degree, teacher } = searchGroupDto;
-    const pageOptionsDto: PageOptionsDto = { page, skip, take };
-
+    const { page, take, order, skip, degree = [], teacher } = searchGroupDto;
     const conditions: FindManyOptions<Group> = {
-      where: { school: { id: schoolId } },
+      select: {
+        teacher: {
+          name: true,
+        },
+      },
+      where: {
+        school: {
+          id: schoolId,
+        },
+      },
+      relations: {
+        teacher: true,
+      },
+      order: {
+        description: order,
+      },
     };
-    if (degree) conditions.where['degree'] = degree;
-    if (teacher) conditions.where['teacher'] = { id: teacher };
+
+    if (degree && degree.length > 0)
+      conditions.where['degree'] = In([...degree]);
+    if (teacher) conditions.where['teacher'] = { name: Like(`${teacher}%`) };
 
     const itemCount = await this.groupRepository.count(conditions);
+
+    conditions.take = take;
+    conditions.skip = skip;
     const groups = await this.groupRepository.find(conditions);
 
+    const pageOptionsDto: PageOptionsDto = { take, skip, page };
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
-    const data = new PageDto(groups, pageMetaDto);
+    const pageData = new PageDto(groups, pageMetaDto);
 
     return {
       success: true,
-      groups: { ...data },
+      groups: { ...pageData },
     };
   }
 

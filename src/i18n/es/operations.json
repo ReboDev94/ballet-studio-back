@@ -5,13 +5,12 @@
     },
     "EMAIL": {
         "ALREDY_EXITS": "El correo electrónico ya existe.",
-        "NO_SENDING":"El correo electrónico no pudo ser entregado."
+        "NO_SENDING": "El correo electrónico no pudo ser entregado."
     },
     "USER": {
-        "FOUND":"El email ya existe",
+        "FOUND": "El email ya existe",
         "NOT_FOUND": "El usuario no existe.",
         "INACTIVE": "El usuario esta inactivo.",
-        "CONFIRM_PASSWORD": "El usuario no ha confirmado el correo electónico.",
         "IS_TEACHER": "El usuario no es un maestro.",
         "HAS_SCHOOL": "EL usuario ya tiene una escuela.",
         "HAS_NOT_SCHOOL": "El usuario no tiene una escuela."
@@ -32,5 +31,6 @@
     },
     "CREDENTIALS_ARE_NO_VALIDS": "Credenciales no validas.",
     "TOKEN_NOT_VALID": "El token no es valido.",
-    "TOKEN_EXPIRE":"El token ha expirado."
+    "TOKEN_EXPIRE": "El token ha expirado.",
+    "CONFIRM_EMAIL": "El usuario no ha confirmado el correo electónico."
 }

@@ -74,10 +74,15 @@ export class GroupService {
       updateGroupDto.teacher = teacher;
     }
 
+    const schedules = Object.keys(Days).map((k) => ({
+      day: k,
+      hour: updateGroupDto[`schedule${k}`],
+    }));
     try {
       const preGroup = await this.groupRepository.preload({
-        id: groupId,
         ...updateGroupDto,
+        id: groupId,
+        schedules,
       });
       await this.groupRepository.save(preGroup);
 

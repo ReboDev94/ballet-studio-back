@@ -1,7 +1,7 @@
 import { IsOptional, IsString, IsEnum, Matches } from 'class-validator';
 import { IsInt } from 'class-validator';
-import { Degrees } from '../../common/interfaces/degrees';
 import { i18nValidationMessage } from 'nestjs-i18n';
+import { Degrees } from '../../common/interfaces/degrees';
 import { REGEX_HOUR } from 'src/common/constants/regex-hourt';
 
 export class CreateGroupDto {

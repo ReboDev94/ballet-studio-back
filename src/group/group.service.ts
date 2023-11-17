@@ -100,6 +100,7 @@ export class GroupService {
     const conditions: FindManyOptions<Group> = {
       select: {
         teacher: {
+          id: true,
           name: true,
         },
       },

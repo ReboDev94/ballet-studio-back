@@ -1,48 +1,69 @@
-import { IsOptional, IsString, IsEnum, Matches } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsArray } from 'class-validator';
 import { IsInt } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { Degrees } from '../../common/interfaces/degrees';
-import { REGEX_HOUR } from 'src/common/constants/regex-hourt';
+import { Schedules } from 'src/common/interfaces/schedules';
 
 export class CreateGroupDto {
   @IsString({ message: i18nValidationMessage('validation.STRING') })
   @IsOptional()
-  description?: string = '';
+  name: string;
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
-  scheduleL?: string = '';
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+  @IsEnum(Schedules, {
+    each: true,
+    message: i18nValidationMessage('validation.ENUM'),
+  })
+  scheduleL?: string[] = [];
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
-  scheduleM?: string = '';
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+  @IsEnum(Schedules, {
+    each: true,
+    message: i18nValidationMessage('validation.ENUM'),
+  })
+  scheduleM?: string[] = [];
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
-  scheduleMI?: string = '';
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+  @IsEnum(Schedules, {
+    each: true,
+    message: i18nValidationMessage('validation.ENUM'),
+  })
+  scheduleMI?: string[] = [];
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
-  scheduleJ?: string = '';
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+  @IsEnum(Schedules, {
+    each: true,
+    message: i18nValidationMessage('validation.ENUM'),
+  })
+  scheduleJ?: string[] = [];
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
-  scheduleV?: string = '';
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+  @IsEnum(Schedules, {
+    each: true,
+    message: i18nValidationMessage('validation.ENUM'),
+  })
+  scheduleV?: string[] = [];
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
-  scheduleS?: string = '';
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+  @IsEnum(Schedules, {
+    each: true,
+    message: i18nValidationMessage('validation.ENUM'),
+  })
+  scheduleS?: string[] = [];
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('validation.STRING') })
-  @Matches(REGEX_HOUR, { message: i18nValidationMessage('validation.HOUR') })
-  scheduleD?: string = '';
+  @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+  @IsEnum(Schedules, {
+    each: true,
+    message: i18nValidationMessage('validation.ENUM'),
+  })
+  scheduleD?: string[] = [];
 
   @IsInt({ message: i18nValidationMessage('validation.INT') })
   schoolCycle: number;

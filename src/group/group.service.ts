@@ -34,13 +34,13 @@ export class GroupService {
       hour: createGroupDto[`schedule${k}`],
     }));
 
-    const { description, teacherId, schoolCycle, degree } = createGroupDto;
+    const { name, teacherId, schoolCycle, degree } = createGroupDto;
     const { id: schoolId } = school;
     const teacher = await this.authService.findOneTeacher(teacherId, schoolId);
 
     try {
       const group = this.groupRepository.create({
-        description,
+        name,
         schedules,
         schoolCycle,
         degree,
@@ -101,7 +101,15 @@ export class GroupService {
   }
 
   async findAll({ id: schoolId }: School, searchGroupDto: SearchGroupDto) {
-    const { page, take, order, skip, degree = [], teacher } = searchGroupDto;
+    const {
+      page,
+      take,
+      order,
+      skip,
+      degree = [],
+      teacher,
+      schoolCycle,
+    } = searchGroupDto;
     const conditions: FindManyOptions<Group> = {
       select: {
         teacher: {
@@ -113,12 +121,13 @@ export class GroupService {
         school: {
           id: schoolId,
         },
+        schoolCycle,
       },
       relations: {
         teacher: true,
       },
       order: {
-        description: order,
+        name: order,
       },
     };
 

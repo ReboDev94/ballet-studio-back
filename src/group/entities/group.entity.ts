@@ -18,8 +18,8 @@ export class Group {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column('text', { default: '' })
-  description: string;
+  @Column('text', { nullable: false })
+  name: string;
 
   @Column('jsonb', {
     nullable: false,

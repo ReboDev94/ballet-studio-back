@@ -8,7 +8,7 @@
         "OBJECT": "El campo $t(attributes.{property}) debe ser un conjunto de objetos",
         "INT": "El campo $t(attributes.{property}) debe ser un conjunto de enteros"
     },
-    "IS_OBJECT":"El campo $t(attributes.{property}) debe ser un objeto.",
+    "IS_OBJECT": "El campo $t(attributes.{property}) debe ser un objeto.",
     "MIN": {
         "INT": "El tamaño de $t(attributes.{property}) debe ser de al menos {constraints.0}.",
         "STRING": "El campo $t(attributes.{property}) debe contener al menos {constraints.0} caracteres."
@@ -17,10 +17,11 @@
         "INT": "$t(attributes.{property}) no debe ser mayor que {constraints.0}.",
         "STRING": "El campo $t(attributes.{property}) no debe contener mas de {constraints.0} caracteres."
     },
+    "SCHEDULE": "El campo $t(attributes.{property}) debe ser un horario valido entre 7 am y 10 pm.",
     "EMAIL": "El campo $t(attributes.{property}) debe ser un correo electrónico valido.",
     "PASSWORD": "El campo $t(attributes.{property}) debe contener al menos una letra mayúscula, una minuscula, un número y un caracter especial ('#', '$', '@', '!', '%', '&', '*', o '?').",
-    "CONFIRM_PASSWORD":"El campo $t(attributes.{property}) debe ser igual a {constraints.0}",
-    "ENUM": "El campo $t(attributes.{property}) es inválido.",
+    "CONFIRM_PASSWORD": "El campo $t(attributes.{property}) debe ser igual a {constraints.0}",
+    "ENUM": "El campo $t(attributes.{property}) no es valido.",
     "BOOLEAN": "El campo $t(attributes.{property}) deber ser de tipo boolean.",
     "INT": "El campo $t(attributes.{property}) deber ser de tipo entero.",
     "DATE": {

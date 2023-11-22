@@ -60,4 +60,6 @@ export class Group {
     onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updatedAt: Date;
+
+  noStudents: number;
 }

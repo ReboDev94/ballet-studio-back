@@ -125,6 +125,7 @@ export class GroupService {
       },
       relations: {
         teacher: true,
+        students: true,
       },
       order: {
         name: order,
@@ -139,7 +140,13 @@ export class GroupService {
 
     conditions.take = take;
     conditions.skip = skip;
-    const groups = await this.groupRepository.find(conditions);
+    const groups = (await this.groupRepository.find(conditions)).map(
+      (group) => {
+        group.noStudents = group.students.length;
+        delete group.students;
+        return group;
+      },
+    );
 
     const pageOptionsDto: PageOptionsDto = { take, skip, page };
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
@@ -166,10 +173,14 @@ export class GroupService {
       where: { id: groupId, school: { id: schoolId } },
       relations: {
         teacher: true,
+        students: true,
       },
     });
     if (!dbGroup)
       throw new NotFoundException({ key: 'operations.GROUP.NOT_FOUND' });
+
+    dbGroup.noStudents = dbGroup.students.length;
+    delete dbGroup.students;
     return dbGroup;
   }
 

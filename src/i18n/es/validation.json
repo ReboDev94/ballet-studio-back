@@ -6,7 +6,8 @@
         "NOT_EMPTY": "El campo $t(attributes.{property}) debe contener al menos 1 elemento.",
         "STRING": "El campo $t(attributes.{property}) debe ser un conjunto de caracteres.",
         "OBJECT": "El campo $t(attributes.{property}) debe ser un conjunto de objetos",
-        "INT": "El campo $t(attributes.{property}) debe ser un conjunto de enteros"
+        "INT": "El campo $t(attributes.{property}) debe ser un conjunto de enteros",
+        "UNIQUE": "Los elementos de $t(attributes.{property}) deben ser unicos."
     },
     "IS_OBJECT": "El campo $t(attributes.{property}) debe ser un objeto.",
     "MIN": {

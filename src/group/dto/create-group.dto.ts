@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsEnum, IsArray } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsArray,
+  ArrayUnique,
+} from 'class-validator';
 import { IsInt } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { Degrees } from '../../common/interfaces/degrees';
@@ -15,6 +21,7 @@ export class CreateGroupDto {
     each: true,
     message: i18nValidationMessage('validation.ENUM'),
   })
+  @ArrayUnique({ message: 'validation.ARRAY.UNIQUE' })
   scheduleL?: string[] = [];
 
   @IsOptional()
@@ -23,6 +30,7 @@ export class CreateGroupDto {
     each: true,
     message: i18nValidationMessage('validation.ENUM'),
   })
+  @ArrayUnique({ message: 'validation.ARRAY.UNIQUE' })
   scheduleM?: string[] = [];
 
   @IsOptional()
@@ -31,6 +39,7 @@ export class CreateGroupDto {
     each: true,
     message: i18nValidationMessage('validation.ENUM'),
   })
+  @ArrayUnique({ message: 'validation.ARRAY.UNIQUE' })
   scheduleMI?: string[] = [];
 
   @IsOptional()
@@ -39,6 +48,7 @@ export class CreateGroupDto {
     each: true,
     message: i18nValidationMessage('validation.ENUM'),
   })
+  @ArrayUnique({ message: 'validation.ARRAY.UNIQUE' })
   scheduleJ?: string[] = [];
 
   @IsOptional()
@@ -47,6 +57,7 @@ export class CreateGroupDto {
     each: true,
     message: i18nValidationMessage('validation.ENUM'),
   })
+  @ArrayUnique({ message: 'validation.ARRAY.UNIQUE' })
   scheduleV?: string[] = [];
 
   @IsOptional()
@@ -55,6 +66,7 @@ export class CreateGroupDto {
     each: true,
     message: i18nValidationMessage('validation.ENUM'),
   })
+  @ArrayUnique({ message: 'validation.ARRAY.UNIQUE' })
   scheduleS?: string[] = [];
 
   @IsOptional()
@@ -63,6 +75,7 @@ export class CreateGroupDto {
     each: true,
     message: i18nValidationMessage('validation.ENUM'),
   })
+  @ArrayUnique({ message: 'validation.ARRAY.UNIQUE' })
   scheduleD?: string[] = [];
 
   @IsInt({ message: i18nValidationMessage('validation.INT') })

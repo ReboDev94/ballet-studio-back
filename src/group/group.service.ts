@@ -17,7 +17,7 @@ import { PageOptionsDto } from '../common/dto/page-options.dto';
 import { PageMetaDto } from '../common/dto/page-meta.dto';
 import { PageDto } from '../common/dto/page.dto';
 import { Days } from 'src/common/interfaces/days';
-
+import slugify from 'slugify';
 @Injectable()
 export class GroupService {
   private readonly logger = new Logger('groupService');
@@ -28,19 +28,53 @@ export class GroupService {
     private readonly authService: AuthService,
   ) {}
 
+  async createSlug(name: string) {
+    let newSlug = slugify(name, {
+      replacement: '-',
+      remove: undefined,
+      lower: true,
+      locale: 'es',
+    });
+
+    const queryBuilder = this.groupRepository.createQueryBuilder('group');
+    const similarSlugs = await queryBuilder
+      .where('slug = :slug', {
+        slug: newSlug,
+      })
+      .orWhere('slug like :slug2', { slug2: `${newSlug}-%` })
+      .getMany();
+
+    if (similarSlugs.length >= 1) {
+      const maxId = similarSlugs
+        .map(({ slug }) => {
+          const parts = slug.split('-');
+          const last = parseInt(parts[parts.length - 1], 10);
+          if (!isNaN(last)) return last;
+        })
+        .filter((v) => Number(v))
+        .reduce((a, b) => Math.max(a, b), 0);
+
+      newSlug += `-${maxId + 1}`;
+    }
+
+    return newSlug;
+  }
+
   async create(createGroupDto: CreateGroupDto, school: School) {
+    const { name, teacherId, schoolCycle, degree } = createGroupDto;
+    const slug = await this.createSlug(name);
     const schedules = Object.keys(Days).map((k) => ({
       day: k,
       hour: createGroupDto[`schedule${k}`],
     }));
 
-    const { name, teacherId, schoolCycle, degree } = createGroupDto;
     const { id: schoolId } = school;
     const teacher = await this.authService.findOneTeacher(teacherId, schoolId);
 
     try {
       const group = this.groupRepository.create({
         name,
+        slug,
         schedules,
         schoolCycle,
         degree,
@@ -63,8 +97,9 @@ export class GroupService {
     updateGroupDto: UpdateGroupDto,
     { id: schoolId }: School,
   ) {
-    await this.findOneBySchool(groupId, schoolId);
-    const { teacherId } = updateGroupDto;
+    const { name } = await this.findOneBySchool(groupId, schoolId);
+
+    const { teacherId, name: nameP } = updateGroupDto;
 
     if (teacherId) {
       const teacher = await this.authService.findOneTeacher(
@@ -78,12 +113,18 @@ export class GroupService {
       day: k,
       hour: updateGroupDto[`schedule${k}`],
     }));
+
     try {
       const preGroup = await this.groupRepository.preload({
         ...updateGroupDto,
         id: groupId,
         schedules,
       });
+
+      if (nameP.toLowerCase() !== name.toLowerCase()) {
+        preGroup.slug = await this.createSlug(nameP);
+      }
+
       await this.groupRepository.save(preGroup);
 
       return {

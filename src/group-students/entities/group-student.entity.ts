@@ -21,10 +21,13 @@ export class GroupStudent {
   @ManyToOne(() => Group, (group) => group.students, {
     nullable: false,
     eager: true,
+    onDelete: 'CASCADE',
   })
   group: Group;
 
-  @ManyToOne(() => Student, (student) => student.groups, { nullable: false })
+  @ManyToOne(() => Student, (student) => student.groups, {
+    nullable: false,
+  })
   student: Student;
 
   @OneToMany(() => RollCall, (rollCall) => rollCall.groupStudent)

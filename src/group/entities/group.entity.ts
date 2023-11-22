@@ -8,7 +8,6 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-
 import { User } from '../../auth/entities/user.entity';
 import { School } from '../../school/entities/school.entity';
 import { GroupStudent } from 'src/group-students/entities/group-student.entity';
@@ -20,6 +19,9 @@ export class Group {
 
   @Column('text', { nullable: false })
   name: string;
+
+  @Column('text', { nullable: false, unique: true })
+  slug: string;
 
   @Column('jsonb', {
     nullable: false,

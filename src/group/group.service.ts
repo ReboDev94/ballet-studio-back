@@ -5,7 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, In, Like, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOptionsSelect,
+  In,
+  Like,
+  Repository,
+} from 'typeorm';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -137,7 +143,15 @@ export class GroupService {
   }
 
   async findOne(slug: string, schoolId: number) {
-    const dbGroup = await this.findOneBySlug(slug, schoolId);
+    const dbGroup = await this.findOneBySlug(slug, schoolId, {
+      id: true,
+      name: true,
+      slug: true,
+      teacher: {
+        id: true,
+        name: true,
+      },
+    });
     return { success: true, group: dbGroup };
   }
 
@@ -209,16 +223,21 @@ export class GroupService {
     }
   }
 
-  async findOneBySlug(slug: string, schoolId: number) {
+  async findOneBySlug(
+    slug: string,
+    schoolId: number,
+    selectFields: FindOptionsSelect<Group> = {},
+  ) {
     const dbGroup = await this.groupRepository.findOne({
+      select: { ...selectFields },
       where: {
         slug,
         school: { id: schoolId },
       },
       relations: {
         teacher: true,
-        students: true,
       },
+      loadEagerRelations: false,
     });
     if (!dbGroup)
       throw new NotFoundException({ key: 'operations.GROUP.NOT_FOUND' });

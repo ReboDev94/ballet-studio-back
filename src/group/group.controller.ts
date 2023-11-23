@@ -42,13 +42,13 @@ export class GroupController {
     return this.groupService.update(groupId, updateGroupDto, school);
   }
 
-  @Get(':groupId')
+  @Get(':slug')
   @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
   findOne(
     @GetUser('school') { id: schoolId }: School,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('slug') slug: string,
   ) {
-    return this.groupService.findOne(groupId, schoolId);
+    return this.groupService.findOne(slug, schoolId);
   }
 
   @Get()

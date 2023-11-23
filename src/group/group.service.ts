@@ -136,8 +136,8 @@ export class GroupService {
     }
   }
 
-  async findOne(groupId: number, schoolId: number) {
-    const dbGroup = await this.findOneBySchool(groupId, schoolId);
+  async findOne(slug: string, schoolId: number) {
+    const dbGroup = await this.findOneBySlug(slug, schoolId);
     return { success: true, group: dbGroup };
   }
 
@@ -207,6 +207,23 @@ export class GroupService {
     } catch (error) {
       this.handleDBException(error);
     }
+  }
+
+  async findOneBySlug(slug: string, schoolId: number) {
+    const dbGroup = await this.groupRepository.findOne({
+      where: {
+        slug,
+        school: { id: schoolId },
+      },
+      relations: {
+        teacher: true,
+        students: true,
+      },
+    });
+    if (!dbGroup)
+      throw new NotFoundException({ key: 'operations.GROUP.NOT_FOUND' });
+
+    return dbGroup;
   }
 
   async findOneBySchool(groupId: number, schoolId: number) {

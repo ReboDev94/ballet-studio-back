@@ -15,6 +15,6 @@ import { FilesModule } from '../files/files.module';
     AuthModule,
     FilesModule,
   ],
-  exports: [StudentService],
+  exports: [StudentService, TypeOrmModule],
 })
 export class StudentModule {}

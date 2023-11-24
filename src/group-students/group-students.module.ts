@@ -6,6 +6,7 @@ import { GroupStudent } from './entities/group-student.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { GroupModule } from 'src/group/group.module';
 import { StudentModule } from 'src/student/student.module';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   controllers: [GroupStudentsController],
@@ -15,6 +16,7 @@ import { StudentModule } from 'src/student/student.module';
     AuthModule,
     GroupModule,
     StudentModule,
+    FilesModule,
   ],
   exports: [TypeOrmModule, GroupStudentsService],
 })

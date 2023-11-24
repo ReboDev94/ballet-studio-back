@@ -424,7 +424,7 @@ export class AuthService {
     const itemCount = await preQueryBuilder.getCount();
 
     let users: User[] = [];
-    const dbUsers = await preQueryBuilder.offset(skip).take(take).getMany();
+    const dbUsers = await preQueryBuilder.skip(skip).take(take).getMany();
 
     if (photos) {
       for (const user of dbUsers) {

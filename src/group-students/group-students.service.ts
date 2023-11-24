@@ -15,6 +15,9 @@ import { SearchStudenthDto } from 'src/student/dto/search-student.dto';
 import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from 'src/common/dto/page-meta.dto';
 import { PageDto } from 'src/common/dto/page.dto';
+import { FilesStudentService } from 'src/files/files.student.service';
+import { SearchStudentsAreNotGroupDto } from './dto/search-students-are-not-group.dto';
+import { Student } from 'src/student/entities/student.entity';
 
 @Injectable()
 export class GroupStudentsService {
@@ -22,8 +25,11 @@ export class GroupStudentsService {
   constructor(
     @InjectRepository(GroupStudent)
     private readonly groupStudentsRepository: Repository<GroupStudent>,
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>,
     private readonly groupService: GroupService,
     private readonly studentService: StudentService,
+    private readonly fileStudentService: FilesStudentService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -122,19 +128,80 @@ export class GroupStudentsService {
       .createQueryBuilder('groupStudents')
       .where(query, conditions)
       .leftJoinAndSelect('groupStudents.student', 'student')
+      .leftJoinAndSelect('student.tutor', 'tutor')
       .andWhere('student.name like :name', {
         name: `${name ? name.toLowerCase() : ''}%`,
       })
       .orderBy('groupStudents.id', order);
 
     const itemCount = await queryBuilder.getCount();
-    const groupStudents = await queryBuilder.getMany();
+    const groupStudents = (
+      await queryBuilder.take(take).skip(skip).getMany()
+    ).map((gs) => {
+      delete gs.student.deletedAt;
+      delete gs.student.createdAt;
+      delete gs.student.updatedAt;
+      return { ...gs.student, createdAtStudent: gs.createdAt };
+    });
+
+    for (const gst of groupStudents) {
+      gst.avatar = await this.fileStudentService.getUrlSignedAvatar(
+        gst.id,
+        gst.avatar,
+      );
+    }
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     const data = new PageDto(groupStudents, pageMetaDto);
     return {
       success: true,
       students: { ...data },
+    };
+  }
+
+  async allStudentsAreNotIntheGroup(
+    groupId: number,
+    school: School,
+    searchStudentsAreNotGroupDto: SearchStudentsAreNotGroupDto,
+  ) {
+    await this.groupService.findOneBySchool(groupId, school.id);
+    const { order, page, take, skip, name } = searchStudentsAreNotGroupDto;
+
+    const queryBuilder = this.studentRepository.createQueryBuilder('students');
+    const studentsGroup = queryBuilder
+      .subQuery()
+      .select('student.id')
+      .from('student', 'student')
+      .leftJoin('student.groups', 'gs')
+      .leftJoin('gs.group', 'group')
+      .where('group.id = :groupId', { groupId })
+      .getQuery();
+
+    const dbQuery = queryBuilder
+      .leftJoinAndSelect('students.tutor', 'tutor')
+      .leftJoinAndSelect('students.groups', 'gs')
+      .leftJoinAndSelect('gs.group', 'group')
+      .where('students.id NOT IN ' + studentsGroup)
+      .andWhere('students.name like :name', {
+        name: `${name.toLowerCase()}%`,
+      })
+      .orderBy('students.name', order);
+
+    const itemCount = await dbQuery.getCount();
+    const dbStudents = (await dbQuery.take(take).skip(skip).getMany()).map(
+      (dbs) => {
+        delete dbs.groups;
+        return dbs;
+      },
+    );
+
+    const pageOptionsDto: PageOptionsDto = { take, skip, page };
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+    const pageData = new PageDto(dbStudents, pageMetaDto);
+
+    return {
+      success: true,
+      students: { ...pageData },
     };
   }
 

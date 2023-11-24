@@ -15,6 +15,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { UserHasSchoolGuard } from 'src/auth/guards/user-has-school.guard';
 import { SearchStudenthDto } from 'src/student/dto/search-student.dto';
+import { SearchStudentsAreNotGroupDto } from './dto/search-students-are-not-group.dto';
 
 @Controller('group-students')
 export class GroupStudentsController {
@@ -59,6 +60,20 @@ export class GroupStudentsController {
       groupId,
       school,
       searchStudentDto,
+    );
+  }
+
+  @Get('all-students-are-not/group/:groupId')
+  @Auth([ValidRoles.admin], { guards: [UserHasSchoolGuard] })
+  allStudentsAreNotIntheGroup(
+    @GetUser('school') school: School,
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Query() searchStudentsAreNotGroupDto: SearchStudentsAreNotGroupDto,
+  ) {
+    return this.groupStudentsService.allStudentsAreNotIntheGroup(
+      groupId,
+      school,
+      searchStudentsAreNotGroupDto,
     );
   }
 }

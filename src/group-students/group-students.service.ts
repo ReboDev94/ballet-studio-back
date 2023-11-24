@@ -195,6 +195,13 @@ export class GroupStudentsService {
       },
     );
 
+    for (const gst of dbStudents) {
+      gst.avatar = await this.fileStudentService.getUrlSignedAvatar(
+        gst.id,
+        gst.avatar,
+      );
+    }
+
     const pageOptionsDto: PageOptionsDto = { take, skip, page };
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     const pageData = new PageDto(dbStudents, pageMetaDto);
